@@ -19,6 +19,13 @@ const config = {
     secret: process.env.JWT_SECRET || 'patrion_jwt_secret_key',
     expiresIn: process.env.JWT_EXPIRES_IN || '1d',
   },
+  
+  mqtt: {
+    broker: process.env.MQTT_BROKER || 'mqtt://localhost:1883',
+    username: process.env.MQTT_USERNAME || '',
+    password: process.env.MQTT_PASSWORD || '',
+    clientId: process.env.MQTT_CLIENT_ID || 'patrion_sensor_tracker'
+  }
 };
 
 export default config; 

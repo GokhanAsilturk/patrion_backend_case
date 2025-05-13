@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt.utils';
+import { Socket } from 'socket.io';
 
 // Kimlik doğrulama için özel bir Interface tanımlayalım
 interface AuthRequest extends Request {
@@ -63,4 +64,27 @@ export const authorize = (allowedRoles: string[]) => {
       });
     }
   };
+};
+
+/**
+ * Socket.io bağlantıları için kimlik doğrulama middleware
+ */
+export const authenticateSocket = (socket: Socket, next: (err?: Error) => void): void => {
+  try {
+    const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
+    
+    if (!token) {
+      return next(new Error('Yetkilendirme token\'ı bulunamadı'));
+    }
+    
+    // Token'ı doğrula
+    const decoded = verifyToken(token);
+    
+    // Kullanıcı bilgisini socket nesnesine ekle
+    socket.data.user = decoded;
+    
+    next();
+  } catch (error) {
+    return next(new Error(error instanceof Error ? error.message : 'Kimlik doğrulama hatası'));
+  }
 }; 

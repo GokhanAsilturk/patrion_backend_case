@@ -1,4 +1,4 @@
-# Patrion Backend Case Uygulama Planı
+# Akıllı Sensör Takip Sistemi Uygulama Planı
 
 ## 1. Proje Kurulumu ✅
 - Node.js projesi başlatma ✅
@@ -8,10 +8,10 @@
 - Gerekli bağımlılıkların yüklenmesi ✅
 
 ## 2. Veritabanı Tasarımı ✅
-- PostgreSQL veritabanı kurulumu ⚠️ (PostgreSQL kurulumu gerekli)
+- PostgreSQL veritabanı kurulumu ✅
 - Veritabanı şemasının oluşturulması ✅
 - Temel tablolar ve ilişkilerin tanımlanması ✅
-- Örnek verilerin hazırlanması ⏳
+- MQTT veri depolama için InfluxDB kurulumu ⏳
 
 ## 3. API Tasarımı ✅
 - RESTful API endpoints planlaması ✅
@@ -22,45 +22,47 @@
 ## 4. Kimlik Doğrulama ve Yetkilendirme ✅
 - JWT tabanlı kimlik doğrulama sistemi ✅
 - Kullanıcı kayıt ve giriş işlemleri ✅
-- Rol tabanlı yetkilendirme ✅
+- Rol tabanlı yetkilendirme (System Admin, Company Admin, User) ⏳
 - Güvenlik önlemlerinin uygulanması ✅
 
-## 5. Temel İşlevselliğin Uygulanması ⏳
-- CRUD işlemleri ✅ (Kullanıcı için)
-- İş mantığı katmanının oluşturulması ✅
-- API entegrasyonları ⏳
+## 5. MQTT Entegrasyonu ✅
+- MQTT broker kurulumu (Eclipse Mosquitto) ✅
+- Sensör veri alımı için MQTT istemcisi ✅
+- Sensor verilerinin veritabanına kaydedilmesi ✅
+- Gerçek zamanlı veri yayını için WebSocket implementasyonu ✅
 
 ## 6. Hata Yönetimi ve Loglama ✅
 - Global hata yakalama mekanizması ✅
-- Detaylı loglama sistemi ✅
+- Structured JSON Logging ⏳
 - Hata mesajlarının standartlaştırılması ✅
 
-## 7. Testler ⏳
+## 7. Kullanıcı Davranış Takibi ⏳
+- Kullanıcı log görüntüleme kayıtları ⏳
+- Log analiz mekanizması ⏳
+- Log sayfası görüntüleme istatistikleri ⏳
+
+## 8. Testler ⏳
 - Birim testleri ⏳
 - Entegrasyon testleri ⏳
 - API testleri ⏳
-- Test senaryolarının hazırlanması ⏳
+- MQTT ve WebSocket testleri ⏳
 
-## 8. Dokümantasyon ✅
-- API dokümantasyonu (Swagger/OpenAPI) ⏳
-- Readme dosyasının hazırlanması ✅
-- Kurulum ve çalıştırma talimatları ✅
+## 9. Dokümantasyon ⏳
+- API dokümantasyonu ⏳
+- MQTT veri formatı dokümantasyonu ✅
+- Mimari tasarım dokümantasyonu ⏳
+- Deployment rehberi ⏳
 
-## 9. Performans Optimizasyonu ⏳
-- Veritabanı sorgularının optimizasyonu ⏳
-- Cache mekanizmasının uygulanması ⏳
-- Yük testi ve darboğazların tespit edilmesi ⏳
-
-## 10. Dağıtım ⏳
+## 10. Containerization & Deployment ⏳
 - Docker yapılandırması ⏳
 - CI/CD pipeline kurulumu ⏳
 - Deployment stratejisinin oluşturulması ⏳
 
 ## Sonraki Adımlar
-1. PostgreSQL kurulumu yapılmalı
-2. Veritabanına bağlantı gerçekleştirilmeli
-3. Ürün ve sipariş modelleri oluşturulmalı
-4. API belgelendirmesi (Swagger) eklenebilir
-5. Testler yazılmalı
+1. Mevcut temel yapıya ek olarak sensör veri modelleri oluşturulmalı ✅
+2. Rol bazlı yetkilendirme sistemi genişletilmeli
+3. MQTT broker entegrasyonu yapılmalı ✅
+4. Gerçek zamanlı veri yayını için WebSocket kurulmalı ✅
+5. Kullanıcı log takip mekanizması geliştirilmeli
 
-Not: Bu genel bir plan olup, case'in özel gereksinimlerine göre detaylandırılması ve güncellenmesi gerekebilir.
+Not: Bu plan, "Akıllı Sensör Takip Sistemi" case'inin gereksinimleri doğrultusunda hazırlanmıştır.

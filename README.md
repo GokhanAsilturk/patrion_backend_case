@@ -10,6 +10,8 @@ Bu proje, Patrion Backend Case çalışması için geliştirilmiş bir REST API 
 - PostgreSQL
 - JWT (JSON Web Token)
 - REST API
+- MQTT (Sensör verisi alımı için)
+- Socket.IO (Gerçek zamanlı veri yayını için)
 
 ## Başlangıç
 
@@ -20,6 +22,7 @@ Bu talimatlar, projeyi yerel makinenizde geliştirme ve test amacıyla çalışt
 - Node.js (v14 veya üzeri)
 - npm (v6 veya üzeri)
 - PostgreSQL
+- MQTT Broker (Eclipse Mosquitto önerilir)
 
 ### Kurulum
 
@@ -49,6 +52,12 @@ Bu talimatlar, projeyi yerel makinenizde geliştirme ve test amacıyla çalışt
    # JWT
    JWT_SECRET=your_jwt_secret_key
    JWT_EXPIRES_IN=1d
+   
+   # MQTT
+   MQTT_BROKER=mqtt://localhost:1883
+   MQTT_USERNAME=your_mqtt_user
+   MQTT_PASSWORD=your_mqtt_password
+   MQTT_CLIENT_ID=patrion_sensor_tracker
    ```
 
 4. PostgreSQL veritabanını oluşturun:
@@ -56,10 +65,85 @@ Bu talimatlar, projeyi yerel makinenizde geliştirme ve test amacıyla çalışt
    createdb patrion_case
    ```
 
-5. Uygulamayı geliştirme modunda başlatın:
+5. Mosquitto MQTT broker kurulumu (Ubuntu/Debian):
+   ```
+   sudo apt-get install mosquitto mosquitto-clients
+   sudo systemctl start mosquitto
+   ```
+   
+   Windows için [Mosquitto İndirme Sayfası](https://mosquitto.org/download/)
+
+6. Uygulamayı geliştirme modunda başlatın:
    ```
    npm run dev
    ```
+
+## MQTT Entegrasyonu
+
+Sistem, sensörlerden veri almak için MQTT protokolünü kullanır. Sensörler aşağıdaki formatta veri yayınlar:
+
+### MQTT Konuları (Topics)
+
+- `sensors/{sensor_id}/data` - Sensör verisi
+- `sensors/{sensor_id}/status` - Sensör durum bilgisi
+
+### Veri Formatı
+
+Sensörlerden gelen veriler aşağıdaki JSON formatında olmalıdır:
+
+```json
+{
+  "sensor_id": "sens-001",
+  "timestamp": 1621234567,
+  "temperature": 24.5,
+  "humidity": 65.7,
+  "location": {
+    "lat": 41.0082,
+    "lng": 28.9784
+  }
+}
+```
+
+### Test Veri Yayını
+
+MQTT broker'a test veri göndermek için:
+
+```bash
+mosquitto_pub -h localhost -t "sensors/sens-001/data" -m '{"sensor_id": "sens-001", "timestamp": 1621234567, "temperature": 24.5, "humidity": 65.7, "pressure": 1013.2}'
+```
+
+## Socket.IO Entegrasyonu
+
+Gerçek zamanlı sensör verilerini istemcilere iletmek için Socket.IO kullanılır.
+
+### Bağlantı Kurma
+
+```javascript
+const socket = io('http://localhost:3000', {
+  auth: {
+    token: 'jwt_token' // Kullanıcı JWT token'ı
+  }
+});
+```
+
+### Odalara Katılma
+
+```javascript
+// Belirli bir şirketin tüm sensörlerini izleme
+socket.emit('join_company', companyId);
+
+// Belirli bir sensörü izleme
+socket.emit('join_sensor', sensorId);
+```
+
+### Veri Dinleme
+
+```javascript
+// Belirli bir sensörden gelen verileri dinleme
+socket.on(`sensor/${sensorId}/data`, (data) => {
+  console.log('Yeni sensör verisi:', data);
+});
+```
 
 ## API Belgelendirmesi
 

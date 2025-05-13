@@ -1,10 +1,17 @@
+export enum UserRole {
+  SYSTEM_ADMIN = 'system_admin',
+  COMPANY_ADMIN = 'company_admin',
+  USER = 'user'
+}
+
 export interface User {
   id: number;
   username: string;
   email: string;
   password: string;
   fullName?: string;
-  role: 'admin' | 'user';
+  company_id?: number;  // Şirket kullanıcıları için
+  role: UserRole;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -14,7 +21,8 @@ export interface UserInput {
   email: string;
   password: string;
   fullName?: string;
-  role?: 'admin' | 'user';
+  company_id?: number;
+  role?: UserRole;
 }
 
 export interface UserLogin {
@@ -27,6 +35,7 @@ export interface UserResponse {
   username: string;
   email: string;
   fullName?: string;
-  role: 'admin' | 'user';
+  company_id?: number;
+  role: UserRole;
   token?: string;
 } 
