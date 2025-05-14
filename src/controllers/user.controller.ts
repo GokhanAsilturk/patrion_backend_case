@@ -1,10 +1,8 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import * as userModel from '../models/user.model';
-
-// Kimlik doğrulama için özel bir Interface tanımlayalım
-interface AuthRequest extends Request {
-  user?: any;
-}
+import { AuthRequest } from '../types/auth';
+import { createUserLog } from '../models/log.model';
+import { LogAction } from '../types/log';
 
 /**
  * Oturum açmış kullanıcının profilini getirir
@@ -31,6 +29,14 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
       return;
     }
 
+    // Kullanıcının profil görüntüleme log kaydını oluştur
+    await createUserLog({
+      user_id: userId,
+      action: LogAction.VIEWED_USER_PROFILE,
+      details: { viewed_self: true },
+      ip_address: req.ip
+    });
+
     // Hassas bilgileri çıkart
     const { password, ...userWithoutPassword } = user;
 
@@ -49,9 +55,19 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
 /**
  * Tüm kullanıcıları listeler (sadece admin için)
  */
-export const getAllUsers = async (_req: Request, res: Response): Promise<void> => {
+export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const users = await userModel.getAllUsers();
+    
+    // Admin'in kullanıcı listesi görüntüleme log kaydını oluştur
+    if (req.user) {
+      await createUserLog({
+        user_id: req.user.id,
+        action: LogAction.VIEWED_USER_PROFILE,
+        details: { viewed_all_users: true },
+        ip_address: req.ip
+      });
+    }
 
     res.status(200).json({
       status: 'success',

@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt.utils';
 import { Socket } from 'socket.io';
-
-// Kimlik doğrulama için özel bir Interface tanımlayalım
-interface AuthRequest extends Request {
-  user?: any;
-}
+import { Permission, hasPermission, hasCompanyPermission } from '../types/permission';
+import { UserRole } from '../types/user';
+import { findUserById } from '../models/user.model';
+import { AuthRequest } from '../types/auth';
 
 /**
  * Kullanıcının kimliğini doğrulayan middleware
@@ -45,7 +44,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 /**
  * Kullanıcının rolünü kontrol eden middleware
  */
-export const authorize = (allowedRoles: string[]) => {
+export const authorize = (allowedRoles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({
@@ -61,6 +60,89 @@ export const authorize = (allowedRoles: string[]) => {
       res.status(403).json({
         status: 'error',
         message: 'Bu işlem için yetkiniz bulunmamaktadır'
+      });
+    }
+  };
+};
+
+/**
+ * Kullanıcının belirli bir izne sahip olup olmadığını kontrol eden middleware
+ */
+export const requirePermission = (requiredPermission: Permission) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      res.status(401).json({
+        status: 'error',
+        message: 'Kimlik doğrulaması gerekli'
+      });
+      return;
+    }
+
+    const userRole = req.user.role as UserRole;
+    
+    if (hasPermission(userRole, requiredPermission)) {
+      next();
+    } else {
+      res.status(403).json({
+        status: 'error',
+        message: 'Bu işlemi gerçekleştirmek için gerekli izne sahip değilsiniz'
+      });
+    }
+  };
+};
+
+/**
+ * Şirket kaynakları için erişim kontrolü yapan middleware
+ * Kullanıcının kendi şirketinin kaynaklarına erişimi kısıtlanır
+ */
+export const checkCompanyAccess = (companyIdParamName: string = 'company_id') => {
+  return async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      if (!req.user) {
+        res.status(401).json({
+          status: 'error',
+          message: 'Kimlik doğrulaması gerekli'
+        });
+        return;
+      }
+      
+      const userRole = req.user.role as UserRole;
+      const userId = req.user.id;
+      
+      // Sistem yöneticisi her şirkete erişebilir
+      if (userRole === UserRole.SYSTEM_ADMIN) {
+        next();
+        return;
+      }
+      
+      // Kullanıcının güncel bilgilerini veritabanından al
+      const user = await findUserById(userId);
+      if (!user) {
+        res.status(404).json({
+          status: 'error',
+          message: 'Kullanıcı bulunamadı'
+        });
+        return;
+      }
+      
+      // Request'ten hedef şirket ID'sini al
+      // URL parametre veya request body'den olabilir
+      const targetCompanyId = req.params[companyIdParamName] ? 
+        parseInt(req.params[companyIdParamName], 10) : 
+        req.body[companyIdParamName];
+      
+      if (hasCompanyPermission(userRole, user.company_id, targetCompanyId)) {
+        next();
+      } else {
+        res.status(403).json({
+          status: 'error',
+          message: 'Bu şirketin kaynaklarına erişim yetkiniz bulunmamaktadır'
+        });
+      }
+    } catch (error) {
+      res.status(500).json({
+        status: 'error',
+        message: error instanceof Error ? error.message : 'Yetkilendirme hatası'
       });
     }
   };

@@ -11,7 +11,7 @@
 - PostgreSQL veritabanı kurulumu ✅
 - Veritabanı şemasının oluşturulması ✅
 - Temel tablolar ve ilişkilerin tanımlanması ✅
-- MQTT veri depolama için InfluxDB kurulumu ⏳
+- MQTT veri depolama için InfluxDB kurulumu ✅
 
 ## 3. API Tasarımı ✅
 - RESTful API endpoints planlaması ✅
@@ -22,7 +22,7 @@
 ## 4. Kimlik Doğrulama ve Yetkilendirme ✅
 - JWT tabanlı kimlik doğrulama sistemi ✅
 - Kullanıcı kayıt ve giriş işlemleri ✅
-- Rol tabanlı yetkilendirme (System Admin, Company Admin, User) ⏳
+- Rol tabanlı yetkilendirme (System Admin, Company Admin, User) ✅
 - Güvenlik önlemlerinin uygulanması ✅
 
 ## 5. MQTT Entegrasyonu ✅
@@ -36,10 +36,10 @@
 - Structured JSON Logging ⏳
 - Hata mesajlarının standartlaştırılması ✅
 
-## 7. Kullanıcı Davranış Takibi ⏳
-- Kullanıcı log görüntüleme kayıtları ⏳
-- Log analiz mekanizması ⏳
-- Log sayfası görüntüleme istatistikleri ⏳
+## 7. Kullanıcı Davranış Takibi ✅
+- Kullanıcı log görüntüleme kayıtları ✅
+- Log analiz mekanizması ✅
+- Log sayfası görüntüleme istatistikleri ✅
 
 ## 8. Testler ⏳
 - Birim testleri ⏳
@@ -59,10 +59,14 @@
 - Deployment stratejisinin oluşturulması ⏳
 
 ## Sonraki Adımlar
-1. Mevcut temel yapıya ek olarak sensör veri modelleri oluşturulmalı ✅
-2. Rol bazlı yetkilendirme sistemi genişletilmeli
-3. MQTT broker entegrasyonu yapılmalı ✅
-4. Gerçek zamanlı veri yayını için WebSocket kurulmalı ✅
-5. Kullanıcı log takip mekanizması geliştirilmeli
+1. ~~Mevcut temel yapıya ek olarak sensör veri modelleri oluşturulmalı~~ ✅
+2. ~~Rol bazlı yetkilendirme sistemi genişletilmeli~~ ✅
+3. ~~MQTT broker entegrasyonu yapılmalı~~ ✅
+4. ~~Gerçek zamanlı veri yayını için WebSocket kurulmalı~~ ✅
+5. ~~Kullanıcı log takip mekanizması geliştirilmeli~~ ✅
+6. Validasyon kuralları eklenmelidir
+7. Test sistemleri kurulmalıdır
+8. API dokümantasyonu hazırlanmalıdır
+9. Docker ile containerization yapılmalıdır
 
 Not: Bu plan, "Akıllı Sensör Takip Sistemi" case'inin gereksinimleri doğrultusunda hazırlanmıştır.

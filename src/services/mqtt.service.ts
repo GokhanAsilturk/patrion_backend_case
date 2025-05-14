@@ -2,6 +2,7 @@ import mqtt, { MqttClient } from 'mqtt';
 import config from '../config/config';
 import { MQTTSensorData } from '../types/sensor';
 import { saveSensorData } from './sensor.service';
+import { writeSensorData } from './influxdb.service';
 
 let client: MqttClient;
 
@@ -46,8 +47,17 @@ export const initMqttClient = (): void => {
         if (topic.match(/^sensors\/[\w-]+\/data$/)) {
           const sensorData: MQTTSensorData = JSON.parse(message.toString());
           
-          // Sensör verisini veritabanına kaydet
+          // Sensör verisini PostgreSQL'e kaydet
           await saveSensorData(sensorData);
+          
+          // Sensör verisini InfluxDB'ye de kaydet
+          try {
+            await writeSensorData(sensorData);
+          } catch (influxError) {
+            console.error('InfluxDB\'ye veri yazılırken hata:', 
+              influxError instanceof Error ? influxError.message : 'Bilinmeyen hata');
+            // InfluxDB hatası uygulama akışını durdurmamalı
+          }
         }
         
         // Sensör durumu için konu filtreleme

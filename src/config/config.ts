@@ -25,6 +25,13 @@ const config = {
     username: process.env.MQTT_USERNAME || '',
     password: process.env.MQTT_PASSWORD || '',
     clientId: process.env.MQTT_CLIENT_ID || 'patrion_sensor_tracker'
+  },
+  
+  influxdb: {
+    url: process.env.INFLUX_URL || 'http://localhost:8086',
+    token: process.env.INFLUX_TOKEN || 'my-token',
+    org: process.env.INFLUX_ORG || 'my-org',
+    bucket: process.env.INFLUX_BUCKET || 'sensor_data'
   }
 };
 
