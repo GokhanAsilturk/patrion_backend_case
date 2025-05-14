@@ -1,31 +1,73 @@
-version: '3'
+version: '3.8'
 
 services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=patrion_case
+      - JWT_SECRET=patrion_jwt_secret_key
+      - JWT_EXPIRES_IN=1d
+      - MQTT_BROKER=mqtt://mosquitto:1883
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=my-token
+      - INFLUX_ORG=my-org
+      - INFLUX_BUCKET=sensor_data
+    depends_on:
+      - postgres
+      - influxdb
+      - mosquitto
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+
+  postgres:
+    image: postgres:14-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=patrion_case
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   influxdb:
-    image: influxdata/influxdb:2.7.0
+    image: influxdb:2.6-alpine
     ports:
       - "8086:8086"
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=password
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminadmin
       - DOCKER_INFLUXDB_INIT_ORG=my-org
       - DOCKER_INFLUXDB_INIT_BUCKET=sensor_data
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-token
     volumes:
-      - influxdb-data:/var/lib/influxdb2
-  
+      - influxdb_data:/var/lib/influxdb2
+    restart: unless-stopped
+
   mosquitto:
-    image: eclipse-mosquitto:latest
+    image: eclipse-mosquitto:2
     ports:
       - "1883:1883"
       - "9001:9001"
     volumes:
-      - mosquitto-data:/mosquitto/data
-      - mosquitto-log:/mosquitto/log
       - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    restart: unless-stopped
 
 volumes:
-  influxdb-data:
-  mosquitto-data:
-  mosquitto-log: 
+  postgres_data:
+  influxdb_data:
+  mosquitto_data:
+  mosquitto_log: 

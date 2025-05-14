@@ -10,93 +10,121 @@ import { createUsersTable } from './models/user.model';
 import { createCompaniesTable } from './models/company.model';
 import { createSensorsTable, createSensorDataTable } from './models/sensor.model';
 import { createUserLogsTable } from './models/log.model';
+import { httpLogger } from './middlewares/logger.middleware';
+import { log } from './utils/logger';
+import swaggerUI from 'swagger-ui-express';
+import swaggerSpec from './utils/swagger';
 
 // Environment variables
 dotenv.config();
 
-// Express app
+// Express uygulaması
 const app: Application = express();
 const PORT = config.port;
 
-// Middlewares
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// HTTP request logger
+app.use(httpLogger);
+
 // Initialize database tables
 const initDatabase = async () => {
   try {
+    // İlk önce şirket tablosunu oluştur
     await createCompaniesTable();
+    log.info('Şirket tablosu başarıyla oluşturuldu');
+    
+    // Sonra kullanıcı tablosunu oluştur (bu tabloda company_id foreign key'i var)
     await createUsersTable();
-    await createSensorsTable().catch(err => {
-      console.log('Sensör tablosu oluşturulurken hata, şirket tablosu önce oluşturulmalıdır:', err.message);
-    });
-    await createSensorDataTable().catch(err => {
-      console.log('Sensör veri tablosu oluşturulurken hata, sensör tablosu önce oluşturulmalıdır:', err.message);
-    });
-    await createUserLogsTable().catch(err => {
-      console.log('Kullanıcı log tablosu oluşturulurken hata, kullanıcı tablosu önce oluşturulmalıdır:', err.message);
-    });
-    console.log('Veritabanı tabloları başarıyla oluşturuldu');
+    log.info('Kullanıcı tablosu başarıyla oluşturuldu');
+    
+    // Sensör tablolarını oluştur
+    await createSensorsTable();
+    log.info('Sensör tablosu başarıyla oluşturuldu');
+    
+    await createSensorDataTable();
+    log.info('Sensör veri tablosu başarıyla oluşturuldu');
+    
+    // Son olarak log tablosunu oluştur
+    await createUserLogsTable();
+    log.info('Kullanıcı log tablosu başarıyla oluşturuldu');
+    
+    log.info('Veritabanı tabloları başarıyla oluşturuldu');
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('Veritabanı tabloları oluşturulurken hata:', errorMessage);
+    log.error('Veritabanı tabloları oluşturulurken hata', { error: errorMessage });
+    console.error('Veritabanı hata:', errorMessage);
   }
 };
 
-// Routes
+// API Routes
 app.use('/api', routes);
 
-app.get('/', (_req: Request, res: Response) => {
-  res.send('Akıllı Sensör Takip Sistemi API - Hoş Geldiniz!');
+// Swagger documentation
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));
+app.get('/api-docs.json', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
 });
 
-// HTTP Server oluştur
+// Ana sayfa
+app.get('/', (req: Request, res: Response) => {
+  res.redirect('/api-docs');
+});
+
+// 404 handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    status: 'error',
+    message: 'Sayfa bulunamadı'
+  });
+});
+
+// Global error handler
+app.use((err: any, req: Request, res: Response, next: any) => {
+  log.error('Uygulama hatası', { 
+    error: err.message || 'Bilinmeyen hata', 
+    stack: err.stack,
+    path: req.path, 
+    method: req.method 
+  });
+  
+  const statusCode = err.statusCode || 500;
+  const errorMessage = err.message || 'Sunucu hatası';
+  
+  res.status(statusCode).json({
+    status: 'error',
+    message: errorMessage
+  });
+});
+
+// HTTP server
 const server = http.createServer(app);
+
+// Initialize Socket.IO
+initSocketIO(server);
 
 // Start server
 server.listen(PORT, async () => {
-  console.log(`Server is running on port ${PORT}`);
+  log.info(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
   
-  // Initialize database
+  // Initialize database tables
   await initDatabase();
   
-  // WebSocket sunucusunu başlat
-  initSocketIO(server);
-  
-  // MQTT istemcisini başlat
+  // Initialize MQTT client
   initMqttClient();
-  
-  console.log('WebSocket ve MQTT servisleri başlatıldı');
 });
 
-// Uygulama kapatıldığında temiz bir şekilde kaynaklarımızı bırakalım
-const gracefulShutdown = () => {
-  console.log('Uygulama kapatılıyor...');
-  
-  // MQTT bağlantısını kapat
-  try {
-    const { closeMqttClient } = require('./services/mqtt.service');
-    closeMqttClient();
-  } catch (error) {
-    console.error('MQTT bağlantısı kapatılırken hata:', error instanceof Error ? error.message : String(error));
-  }
-  
-  // HTTP sunucusunu kapat
+// Handle process termination
+process.on('SIGTERM', () => {
+  log.info('SIGTERM sinyali alındı. Sunucu kapatılıyor.');
   server.close(() => {
-    console.log('HTTP sunucusu kapatıldı');
+    log.info('HTTP sunucusu kapatıldı.');
     process.exit(0);
   });
-  
-  // 10 saniye sonra zorla kapat
-  setTimeout(() => {
-    console.error('Graceful shutdown başarısız! Zorla kapatılıyor...');
-    process.exit(1);
-  }, 10000);
-};
+});
 
-// Sinyalleri dinle
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
-
-export default app; 
+export default server; 

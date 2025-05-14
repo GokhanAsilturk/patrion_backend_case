@@ -80,4 +80,126 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
       message: error instanceof Error ? error.message : 'Kullanıcılar listelenirken bir hata oluştu'
     });
   }
+};
+
+/**
+ * ID'ye göre kullanıcı getirir
+ */
+export const getUserById = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    
+    // Kendi şirketimin kullanıcısını görüntüleyip görüntüleyemeyeceğimi kontrol et
+    if (req.user?.role === 'company_admin') {
+      const requestedUser = await userModel.findUserById(userId);
+      
+      if (!requestedUser || requestedUser.company_id !== req.user.company_id) {
+        res.status(403).json({
+          status: 'error',
+          message: 'Bu kullanıcıyı görüntüleme yetkiniz yok'
+        });
+        return;
+      }
+    }
+
+    const user = await userModel.findUserById(userId);
+
+    if (!user) {
+      res.status(404).json({
+        status: 'error',
+        message: 'Kullanıcı bulunamadı'
+      });
+      return;
+    }
+
+    // Kullanıcının profil görüntüleme log kaydını oluştur
+    if (req.user) {
+      await createUserLog({
+        user_id: req.user.id,
+        action: LogAction.VIEWED_USER_PROFILE,
+        details: { viewed_user_id: userId },
+        ip_address: req.ip
+      });
+    }
+
+    // Hassas bilgileri çıkart
+    const { password, ...userWithoutPassword } = user;
+
+    res.status(200).json({
+      status: 'success',
+      data: { user: userWithoutPassword }
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Kullanıcı bilgileri alınırken bir hata oluştu'
+    });
+  }
+};
+
+/**
+ * Kullanıcı bilgilerini günceller
+ */
+export const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+    
+    // Kendi şirketimin kullanıcısını güncelleyip güncelleyemeyeceğimi kontrol et
+    if (req.user?.role === 'company_admin') {
+      const requestedUser = await userModel.findUserById(userId);
+      
+      if (!requestedUser || requestedUser.company_id !== req.user.company_id) {
+        res.status(403).json({
+          status: 'error',
+          message: 'Bu kullanıcıyı güncelleme yetkiniz yok'
+        });
+        return;
+      }
+      
+      // Şirket adminleri rol değiştiremez
+      if (req.body.role && req.body.role !== requestedUser.role) {
+        res.status(403).json({
+          status: 'error',
+          message: 'Kullanıcı rolünü değiştirme yetkiniz yok'
+        });
+        return;
+      }
+    }
+
+    const userExists = await userModel.findUserById(userId);
+
+    if (!userExists) {
+      res.status(404).json({
+        status: 'error',
+        message: 'Kullanıcı bulunamadı'
+      });
+      return;
+    }
+
+    // Kullanıcı güncelleme işlemini gerçekleştir
+    const updatedUser = await userModel.updateUser(userId, req.body);
+    
+    // Kullanıcı güncelleme log kaydını oluştur
+    if (req.user) {
+      await createUserLog({
+        user_id: req.user.id,
+        action: LogAction.UPDATED_USER,
+        details: { updated_user_id: userId, fields_updated: Object.keys(req.body) },
+        ip_address: req.ip
+      });
+    }
+
+    // Hassas bilgileri çıkart
+    const { password, ...userWithoutPassword } = updatedUser;
+
+    res.status(200).json({
+      status: 'success',
+      data: { user: userWithoutPassword }
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Kullanıcı güncellenirken bir hata oluştu'
+    });
+  }
 }; 

@@ -106,4 +106,74 @@ export const getAllUsers = async (): Promise<User[]> => {
     console.error('Tüm kullanıcılar alınırken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
     throw error;
   }
+};
+
+export const updateUser = async (id: number, userData: Partial<UserInput>): Promise<User> => {
+  // Güncellenecek alanları ve değerlerini oluştur
+  const updates: string[] = [];
+  const values: any[] = [];
+  let paramCount = 1;
+
+  // Güncellenebilir alanları kontrol et
+  if (userData.email !== undefined) {
+    updates.push(`email = $${paramCount}`);
+    values.push(userData.email);
+    paramCount++;
+  }
+
+  if (userData.fullName !== undefined) {
+    updates.push(`full_name = $${paramCount}`);
+    values.push(userData.fullName);
+    paramCount++;
+  }
+
+  if (userData.company_id !== undefined) {
+    updates.push(`company_id = $${paramCount}`);
+    values.push(userData.company_id);
+    paramCount++;
+  }
+
+  if (userData.role !== undefined) {
+    updates.push(`role = $${paramCount}`);
+    values.push(userData.role);
+    paramCount++;
+  }
+
+  // Şifre güncellemesi için ayrı kontrol (şifre hash'lenmişse)
+  if (userData.password !== undefined) {
+    updates.push(`password = $${paramCount}`);
+    values.push(userData.password);
+    paramCount++;
+  }
+
+  // Güncelleme zamanını ayarla
+  updates.push(`updated_at = NOW()`);
+
+  // Güncellenecek alan yoksa hata fırlat
+  if (updates.length === 1) { // Sadece updated_at varsa
+    throw new Error('Güncellenecek alan bulunamadı');
+  }
+
+  // Sorgu oluştur
+  const query = `
+    UPDATE users
+    SET ${updates.join(', ')}
+    WHERE id = $${paramCount}
+    RETURNING id, username, email, password, full_name as "fullName", company_id, role, created_at as "createdAt", updated_at as "updatedAt";
+  `;
+
+  values.push(id); // WHERE id = ? için
+
+  try {
+    const result: QueryResult = await pool.query(query, values);
+    
+    if (result.rows.length === 0) {
+      throw new Error('Kullanıcı bulunamadı');
+    }
+    
+    return result.rows[0] as User;
+  } catch (error) {
+    console.error('Kullanıcı güncellenirken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
+    throw error;
+  }
 }; 
