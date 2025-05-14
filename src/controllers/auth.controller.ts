@@ -5,7 +5,7 @@ import * as authService from '../services/auth.service';
  * @swagger
  * /auth/register:
  *   post:
- *     summary: Yeni kullanıcı kaydı oluşturur
+ *     summary: Yeni kullanıcı kaydı oluşturur (Sadece System Admin ve Company Admin kullanabilir)
  *     tags: [Auth]
  *     requestBody:
  *       required: true
@@ -105,12 +105,13 @@ export const register = async (req: Request, res: Response): Promise<void> => {
  *           schema:
  *             type: object
  *             required:
- *               - username
+ *               - email
  *               - password
  *             properties:
- *               username:
+ *               email:
  *                 type: string
- *                 example: "johndoe"
+ *                 format: email
+ *                 example: "john@example.com"
  *               password:
  *                 type: string
  *                 format: password

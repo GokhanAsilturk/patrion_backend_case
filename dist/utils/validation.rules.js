@@ -8,9 +8,9 @@ const user_1 = require("../types/user");
  */
 exports.authValidation = {
     login: [
-        (0, express_validator_1.body)('username')
-            .notEmpty().withMessage('Kullanıcı adı zorunludur')
-            .isLength({ min: 3 }).withMessage('Kullanıcı adı en az 3 karakter olmalıdır'),
+        (0, express_validator_1.body)('email')
+            .notEmpty().withMessage('Email zorunludur')
+            .isEmail().withMessage('Geçerli bir email giriniz'),
         (0, express_validator_1.body)('password')
             .notEmpty().withMessage('Şifre zorunludur')
             .isLength({ min: 6 }).withMessage('Şifre en az 6 karakter olmalıdır')

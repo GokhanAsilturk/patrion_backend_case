@@ -56,13 +56,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.login = exports.register = void 0;
 const userModel = __importStar(require("../models/user.model"));
 const jwt_utils_1 = require("../utils/jwt.utils");
+const bcrypt = require("bcrypt");
 /**
  * Kullanıcı kaydı yapar
  */
 const register = (userData) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Şifreyi hash'le (normalde bcrypt kullanılır)
-        const hashedPassword = userData.password; // Bu sadece örnek, gerçek uygulamada şifre hashlenmeli!
+        const hashedPassword = bcrypt.hashSync(userData.password, 10);
         // Kullanıcıyı veritabanına kaydet
         const user = yield userModel.createUser(Object.assign(Object.assign({}, userData), { password: hashedPassword }));
         // JWT token oluştur
@@ -87,8 +88,8 @@ const login = (credentials) => __awaiter(void 0, void 0, void 0, function* () {
         if (!user) {
             throw new Error('Kullanıcı bulunamadı');
         }
-        // Şifre kontrolü yap (normalde bcrypt.compare kullanılır)
-        const isValidPassword = credentials.password === user.password; // Bu sadece örnek!
+        // Şifre kontrolü yap (geçici olarak direkt karşılaştırma yapıyoruz)
+        const isValidPassword = credentials.password === user.password;
         if (!isValidPassword) {
             throw new Error('Geçersiz şifre');
         }

@@ -14,7 +14,7 @@ import { httpLogger } from './middlewares/logger.middleware';
 import { log } from './utils/logger';
 import swaggerUI from 'swagger-ui-express';
 import swaggerSpec from './utils/swagger';
-
+import seedDatabase from './seeds/seed';
 // Environment variables
 dotenv.config();
 
@@ -33,7 +33,7 @@ app.use(httpLogger);
 // Initialize database tables
 const initDatabase = async () => {
   try {
-    // İlk önce şirket tablosunu oluştur
+    // İlk önce şirket tablosunu oluştur (users tablosu company_id foreign key için buna bağlı)
     await createCompaniesTable();
     log.info('Şirket tablosu başarıyla oluşturuldu');
     
@@ -51,12 +51,23 @@ const initDatabase = async () => {
     // Son olarak log tablosunu oluştur
     await createUserLogsTable();
     log.info('Kullanıcı log tablosu başarıyla oluşturuldu');
+
+    
     
     log.info('Veritabanı tabloları başarıyla oluşturuldu');
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     log.error('Veritabanı tabloları oluşturulurken hata', { error: errorMessage });
     console.error('Veritabanı hata:', errorMessage);
+  }
+  try {
+    // oluşturulan tablolara seed verileri ekle
+    await seedDatabase();
+    log.info('Seed verileri başarıyla eklendi');
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    log.error('Seed verileri ekleme hatası', { error: errorMessage });
+    console.error('Seed verileri ekleme hatası:', errorMessage);
   }
 };
 
