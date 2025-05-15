@@ -73,6 +73,7 @@ const initDatabase = async () => {
 
 // API Routes
 app.use('/api', routes);
+console.log('API rotaları yüklendi, /api/logs endpoint\'i aktif');
 
 // Swagger documentation
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerSpec));

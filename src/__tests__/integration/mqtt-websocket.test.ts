@@ -6,6 +6,7 @@ import { AddressInfo } from 'net';
 import { closeServer } from '../../index';
 import config from '../../config/config';
 import { initSocketIO } from '../../socket';
+import { MQTTSensorData } from '../../types/sensor';
 
 process.env.NODE_ENV = 'test';
 
@@ -37,8 +38,8 @@ const createTestServer = () => {
   return server;
 };
 
-// Bu testler gerçek MQTT broker ve WebSocket server gerektirdiği için şu an skip ediyoruz
-describe.skip('MQTT ve WebSocket Testleri', () => {
+// MQTT ve WebSocket entegrasyon testleri
+describe('MQTT ve WebSocket Testleri', () => {
   let server: http.Server;
   let port: number;
   
@@ -138,14 +139,28 @@ describe.skip('MQTT ve WebSocket Testleri', () => {
     }
   }, 30000); // Timeout süresini 30 saniyeye çıkardık
 
-  // MQTT mesajı gönderme ve WebSocket üzerinden alma testi
-  it('MQTT mesajı gönderme ve WebSocket üzerinden alma', async () => {
-    // MQTT üzerinden bir sensör verisi gönder
-    const sensorData = {
-      id: 1,
-      value: 25.5,
-      timestamp: new Date().toISOString()
+  // MQTT ve WebSocket bağlantı testleri
+  it('MQTT client bağlantısı başarılı', async () => {
+    expect(mqttClient.connected).toBe(true);
+  });
+
+  it('WebSocket bağlantısı başarılı', async () => {
+    expect(ws.readyState).toBe(WebSocket.OPEN);
+  });
+
+  // MQTT mesaj yayını ve WebSocket aboneliği testi
+  it('MQTT üzerinden sensör verisi yayınlandığında WebSocket üzerinden alınabilmeli', async () => {
+    // Test için sensör verisi
+    const sensorData: MQTTSensorData = {
+      sensor_id: 'test-sensor-1',
+      timestamp: Math.floor(Date.now() / 1000),
+      temperature: 25.5,
+      humidity: 60.2,
+      battery: 98,
+      signal_strength: -65
     };
+    
+    const topic = `sensors/${sensorData.sensor_id}/data`;
 
     // WebSocket üzerinden gelen mesajı dinle
     const wsMessage = await new Promise<any>((resolve, reject) => {
@@ -157,36 +172,134 @@ describe.skip('MQTT ve WebSocket Testleri', () => {
         clearTimeout(timeout);
         try {
           const message = JSON.parse(data.toString());
-          resolve(message);
+          
+          // Mesaj konuyu ve verileri içeriyor mu kontrol et
+          if (message.topic === topic) {
+            resolve(message);
+          }
         } catch (err) {
           reject(new Error(`WebSocket message parse error: ${err}`));
         }
       });
 
-      // Sensör verisi gönder
-      mqttClient.publish('sensors/1/data', JSON.stringify(sensorData), (err) => {
+      // MQTT üzerinden sensör verisi yayınla
+      mqttClient.publish(topic, JSON.stringify(sensorData), (err) => {
         if (err) {
           clearTimeout(timeout);
           reject(new Error(`MQTT publish error: ${err}`));
         }
-        console.log('MQTT message published');
+        console.log(`MQTT message published to ${topic}`);
       });
     });
 
-    // Timeout ekle
-    await new Promise(resolve => setTimeout(resolve, waitTime));
-
     // Mesajın doğru formatta ve içerikte olduğunu doğrula
     expect(wsMessage).toBeDefined();
-    expect(wsMessage.topic).toBe('sensors/1/data');
+    expect(wsMessage.topic).toBe(topic);
     expect(wsMessage.data).toEqual(sensorData);
   });
-
-  it('MQTT client yayınları alabiliyor', async () => {
+  
+  // Hatalı format test
+  it('Hatalı formattaki MQTT mesajlarını doğru şekilde işlemeli', async () => {
+    const invalidData = 'bu geçerli bir json değil';
+    const topic = 'sensors/invalid-sensor/data';
+    
+    // Hatalı veriyi yayınla
+    await new Promise<void>((resolve) => {
+      mqttClient.publish(topic, invalidData, () => {
+        // Mesaj gönderildikten sonra biraz bekle
+        setTimeout(resolve, 1000);
+      });
+    });
+    
+    // Bu test başarısız bir JSON ayrıştırması beklentisi içerir
+    // Sistem çökmemeli ve hata işlenebilmeli
+    // Burada direkt bir sonuç beklemiyoruz, sadece sistemin çalışmaya devam ettiğini doğruluyoruz
     expect(mqttClient.connected).toBe(true);
   });
-
-  it('WebSocket bağlantısı doğru çalışıyor', async () => {
-    expect(ws.readyState).toBe(WebSocket.OPEN);
+  
+  // Sensör durumu mesajı testi
+  it('Sensör durum mesajları doğru işlenmeli', async () => {
+    const statusData = {
+      sensor_id: 'test-sensor-2',
+      status: 'active',
+      battery_level: 85,
+      last_seen: Math.floor(Date.now() / 1000)
+    };
+    
+    const topic = `sensors/${statusData.sensor_id}/status`;
+    
+    // Durum mesajını yayınla
+    await new Promise<void>((resolve) => {
+      mqttClient.publish(topic, JSON.stringify(statusData), () => {
+        // Mesaj gönderildikten sonra biraz bekle
+        setTimeout(resolve, 1000);
+      });
+    });
+    
+    // Burada da direkt bir sonuç beklemiyoruz, sistemin çalışmaya devam ettiğini doğruluyoruz
+    expect(mqttClient.connected).toBe(true);
+  });
+  
+  // Çoklu mesaj ve WebSocket yanıtı
+  it('Çoklu MQTT mesajları için WebSocket yanıtları doğru olmalı', async () => {
+    // Farklı sensörler için test verileri
+    const sensors = [
+      {
+        sensor_id: 'test-multi-1',
+        timestamp: Math.floor(Date.now() / 1000),
+        temperature: 22.1,
+        humidity: 58.5
+      },
+      {
+        sensor_id: 'test-multi-2',
+        timestamp: Math.floor(Date.now() / 1000),
+        temperature: 23.4,
+        humidity: 62.1
+      }
+    ];
+    
+    // Her sensör için mesajları yayınla ve WebSocket yanıtlarını topla
+    const results = await Promise.all(
+      sensors.map(async (sensor) => {
+        const topic = `sensors/${sensor.sensor_id}/data`;
+        
+        // WebSocket mesajını bekle
+        const wsPromise = new Promise<any>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error(`WebSocket timeout for sensor ${sensor.sensor_id}`));
+          }, 5000);
+          
+          const messageHandler = (event: WebSocket.MessageEvent) => {
+            try {
+              const message = JSON.parse(event.data.toString());
+              if (message.topic === topic) {
+                clearTimeout(timeout);
+                ws.removeEventListener('message', messageHandler);
+                resolve(message);
+              }
+            } catch (err) {
+              // Parse hatası olursa yoksay (diğer sensör mesajları olabilir)
+            }
+          };
+          
+          ws.addEventListener('message', messageHandler);
+          
+          // MQTT mesajı yayınla
+          mqttClient.publish(topic, JSON.stringify(sensor), (err) => {
+            if (err) {
+              clearTimeout(timeout);
+              reject(new Error(`MQTT publish error for ${sensor.sensor_id}: ${err}`));
+            }
+          });
+        });
+        
+        return wsPromise;
+      })
+    );
+    
+    // Her iki sensör mesajının da doğru alındığını kontrol et
+    expect(results.length).toBe(2);
+    expect(results[0].data.sensor_id).toBe('test-multi-1');
+    expect(results[1].data.sensor_id).toBe('test-multi-2');
   });
 }); 

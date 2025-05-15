@@ -3,6 +3,8 @@ import config from '../config/config';
 import { MQTTSensorData } from '../types/sensor';
 import { saveSensorData } from './sensor.service';
 import { writeSensorData } from './influxdb.service';
+import { createUserLog } from '../models/log.model';
+import { LogAction } from '../types/log';
 
 let client: MqttClient;
 
@@ -45,7 +47,21 @@ export const initMqttClient = (): void => {
         
         // Sensör verisi için konu filtreleme
         if (topic.match(/^sensors\/[\w-]+\/data$/)) {
-          const sensorData: MQTTSensorData = JSON.parse(message.toString());
+          // JSON parse kontrolü
+          let sensorData: MQTTSensorData;
+          try {
+            sensorData = JSON.parse(message.toString());
+          } catch (parseError) {
+            // JSON parse hatası - hatalı veri formatı
+            logInvalidSensorData(topic, message.toString(), 'JSON parse hatası', parseError);
+            return;
+          }
+          
+          // Gerekli alanların kontrolü
+          if (!isValidSensorData(sensorData)) {
+            logInvalidSensorData(topic, message.toString(), 'Geçersiz sensör veri formatı');
+            return;
+          }
           
           // Sensör verisini PostgreSQL'e kaydet
           await saveSensorData(sensorData);
@@ -62,12 +78,21 @@ export const initMqttClient = (): void => {
         
         // Sensör durumu için konu filtreleme
         if (topic.match(/^sensors\/[\w-]+\/status$/)) {
-          const statusData = JSON.parse(message.toString());
+          let statusData;
+          try {
+            statusData = JSON.parse(message.toString());
+          } catch (parseError) {
+            // JSON parse hatası - hatalı durum verisi
+            logInvalidSensorData(topic, message.toString(), 'JSON parse hatası (durum verisi)', parseError);
+            return;
+          }
           console.log('Sensör durum bilgisi:', statusData);
           // Durum bilgisini işle (gerekirse)
         }
       } catch (error) {
         console.error('MQTT mesajı işlenirken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
+        // Genel hata durumunu logla
+        logInvalidSensorData('Genel MQTT Hatası', message.toString(), 'İşleme hatası', error);
       }
     });
 
@@ -84,6 +109,60 @@ export const initMqttClient = (): void => {
     });
   } catch (error) {
     console.error('MQTT istemcisi başlatılırken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
+  }
+};
+
+/**
+ * Sensör verisinin geçerli olup olmadığını kontrol eder
+ */
+const isValidSensorData = (data: any): boolean => {
+  // Gerekli alanların kontrolü
+  if (!data.sensor_id || typeof data.sensor_id !== 'string') {
+    return false;
+  }
+  
+  if (!data.timestamp || typeof data.timestamp !== 'number') {
+    return false;
+  }
+  
+  // Diğer alan tür kontrolleri
+  if (data.temperature !== undefined && typeof data.temperature !== 'number') {
+    return false;
+  }
+  
+  if (data.humidity !== undefined && typeof data.humidity !== 'number') {
+    return false;
+  }
+  
+  return true;
+};
+
+/**
+ * Hatalı sensör verilerini loglar
+ */
+const logInvalidSensorData = async (topic: string, rawData: string, reason: string, error?: any): Promise<void> => {
+  try {
+    // Hata detayını oluştur
+    const errorDetails = {
+      topic,
+      rawData,
+      reason,
+      error: error instanceof Error ? error.message : error
+    };
+    
+    console.error(`Hatalı sensör verisi: ${reason}`, errorDetails);
+    
+    // user_logs tablosuna kaydet (system userı olarak)
+    await createUserLog({
+      user_id: 1, // System user ID'si (veritabanında system kullanıcısı oluşturulmalı)
+      action: LogAction.INVALID_SENSOR_DATA,
+      details: errorDetails,
+      ip_address: 'system',
+      user_agent: 'MQTT Service'
+    });
+  } catch (logError) {
+    // Log kaydı oluşturulurken hata olursa sadece konsola yaz
+    console.error('Hatalı veri loglanırken hata:', logError instanceof Error ? logError.message : 'Bilinmeyen hata');
   }
 };
 

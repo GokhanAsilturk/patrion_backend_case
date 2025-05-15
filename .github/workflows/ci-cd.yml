@@ -1,0 +1,119 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: patrion_case_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mosquitto:
+        image: eclipse-mosquitto:2
+        ports:
+          - 1883:1883
+          - 9001:9001
+        volumes:
+          - ${{ github.workspace }}/mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create .env file
+        run: |
+          echo "PORT=3000" > .env
+          echo "NODE_ENV=test" >> .env
+          echo "DB_HOST=localhost" >> .env
+          echo "DB_PORT=5432" >> .env
+          echo "DB_USER=postgres" >> .env
+          echo "DB_PASSWORD=postgres" >> .env
+          echo "DB_NAME=patrion_case_test" >> .env
+          echo "JWT_SECRET=test_jwt_secret" >> .env
+          echo "JWT_EXPIRES_IN=1h" >> .env
+          echo "MQTT_BROKER=mqtt://localhost:1883" >> .env
+          echo "INFLUX_URL=http://localhost:8086" >> .env
+          echo "INFLUX_TOKEN=test-token" >> .env
+          echo "INFLUX_ORG=test-org" >> .env
+          echo "INFLUX_BUCKET=test-bucket" >> .env
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run unit tests
+        run: npm test
+
+  docker-build:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/patrion-sensor-tracker:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/patrion-sensor-tracker:${{ github.sha }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/patrion-sensor-tracker:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/patrion-sensor-tracker:buildcache,mode=max
+
+  deploy:
+    needs: docker-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Deploy to production server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd ~/patrion_backend_case
+            git pull origin main
+            docker-compose pull
+            docker-compose up -d 
