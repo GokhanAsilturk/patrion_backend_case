@@ -118,16 +118,34 @@ const server = http.createServer(app);
 // Initialize Socket.IO
 initSocketIO(server);
 
-// Start server
-server.listen(PORT, async () => {
-  log.info(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
-  
-  // Initialize database tables
-  await initDatabase();
-  
-  // Initialize MQTT client
-  initMqttClient();
-});
+// Sunucuyu kapatmak için fonksiyon
+export const closeServer = () => {
+  if (server) {
+    server.close();
+  }
+};
+
+// Sunucuyu başlatmak için fonksiyon
+export const startServer = async () => {
+  return new Promise<void>((resolve) => {
+    server.listen(PORT, async () => {
+      log.info(`Sunucu http://localhost:${PORT} adresinde çalışıyor`);
+      
+      // Initialize database tables
+      await initDatabase();
+      
+      // Initialize MQTT client
+      initMqttClient();
+      
+      resolve();
+    });
+  });
+};
+
+// Test ortamında değilsek sunucuyu başlat
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
 
 // Handle process termination
 process.on('SIGTERM', () => {

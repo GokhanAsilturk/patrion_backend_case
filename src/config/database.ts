@@ -1,5 +1,6 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
 import config from './config';
+import { log } from '../utils/logger';
 
 const pool = new Pool({
   host: config.db.host,
@@ -10,21 +11,30 @@ const pool = new Pool({
   client_encoding: 'UTF8'
 });
 
-// Test connection
-pool.connect((err: Error | undefined, client: PoolClient | undefined, done: (release?: any) => void) => {
-  if (err) {
-    return console.error('Veritabanına bağlanırken hata oluştu:', err.message);
-  }
-  
-  if (client) {
-    client.query('SELECT NOW()', (err: Error | null, result: QueryResult) => {
-      done();
-      if (err) {
-        return console.error('Sorgu çalıştırılırken hata oluştu:', err.message);
-      }
-      console.log('Veritabanı bağlantısı başarılı:', result.rows[0]);
-    });
-  }
+// Bağlantıda hata olursa tüm uygulamayı çökertmek yerine loglama yap
+pool.on('error', (err) => {
+  log.error('Beklenmeyen veritabanı hatası', { error: err.message });
 });
+
+// Test connection
+const testConnection = async () => {
+  let client;
+  try {
+    client = await pool.connect();
+    const result = await client.query('SELECT NOW()');
+    log.info('Veritabanı bağlantısı başarılı', { timestamp: result.rows[0] });
+    return true;
+  } catch (err) {
+    log.error('Veritabanına bağlanırken hata oluştu', { 
+      error: err instanceof Error ? err.message : 'Bilinmeyen hata'
+    });
+    return false;
+  } finally {
+    if (client) client.release();
+  }
+};
+
+// Bağlantıyı test et
+testConnection();
 
 export default pool; 

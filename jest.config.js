@@ -19,5 +19,6 @@ module.exports = {
     '!src/**/__tests__/**',
     '!**/node_modules/**',
   ],
-  testTimeout: 10000
+  testTimeout: 10000,
+  setupFiles: ['<rootDir>/jest.setup.js']
 }; 

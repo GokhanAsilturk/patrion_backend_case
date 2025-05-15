@@ -44,6 +44,11 @@ export const userValidation = {
       .notEmpty().withMessage('Kullanıcı ID zorunludur')
       .isInt().withMessage('Kullanıcı ID bir tam sayı olmalıdır')
   ],
+  getByUsername: [
+    param('username')
+      .notEmpty().withMessage('Kullanıcı adı zorunludur')
+      .isLength({ min: 3 }).withMessage('Kullanıcı adı en az 3 karakter olmalıdır')
+  ],
   update: [
     param('id')
       .notEmpty().withMessage('Kullanıcı ID zorunludur')

@@ -1,11 +1,11 @@
 // src/types/express/index.d.ts
 import * as express from 'express';
-import { User } from '../user';
+import { JwtUser } from '../auth';
 
 declare global {
   namespace Express {
     interface Request {
-      user?: User;
+      user?: JwtUser;
     }
   }
 }

@@ -53,7 +53,38 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
 };
 
 /**
- * Tüm kullanıcıları listeler (sadece admin için)
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Tüm kullanıcıları listeler
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Kullanıcılar başarıyla listelendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 results:
+ *                   type: integer
+ *                   example: 5
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     users:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *       403:
+ *         description: Bu işleme yetkiniz yok, sadece sistem admin kullanabilir
+ *       500:
+ *         description: Sunucu hatası
  */
 export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
@@ -200,6 +231,103 @@ export const updateUser = async (req: AuthRequest, res: Response): Promise<void>
     res.status(500).json({
       status: 'error',
       message: error instanceof Error ? error.message : 'Kullanıcı güncellenirken bir hata oluştu'
+    });
+  }
+};
+
+/**
+ * @swagger
+ * /users/username/{username}:
+ *   get:
+ *     summary: Kullanıcı adına göre kullanıcı bilgilerini getirir
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: username
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Kullanıcı adı
+ *     responses:
+ *       200:
+ *         description: Kullanıcı başarıyla getirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: "success"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *       403:
+ *         description: Bu kullanıcıyı görüntüleme yetkiniz yok
+ *       404:
+ *         description: Kullanıcı bulunamadı
+ */
+export const getUserByUsername = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const username = req.params.username;
+    
+    // Erişim kontrolü
+    if (req.user?.role !== 'system_admin' && req.user?.role !== 'company_admin') {
+      res.status(403).json({
+        status: 'error',
+        message: 'Bu bilgilere erişim yetkiniz yok'
+      });
+      return;
+    }
+    
+    // Şirket admin rolündeki kullanıcılar sadece kendi şirketindeki kullanıcıları görüntüleyebilir
+    if (req.user?.role === 'company_admin') {
+      const requestedUser = await userModel.findUserByUsername(username);
+      
+      if (!requestedUser || requestedUser.company_id !== req.user.company_id) {
+        res.status(403).json({
+          status: 'error',
+          message: 'Bu kullanıcıyı görüntüleme yetkiniz yok'
+        });
+        return;
+      }
+    }
+    
+    const user = await userModel.findUserByUsername(username);
+    
+    if (!user) {
+      res.status(404).json({
+        status: 'error',
+        message: 'Kullanıcı bulunamadı'
+      });
+      return;
+    }
+    
+    // Kullanıcının profil görüntüleme log kaydını oluştur
+    if (req.user) {
+      await createUserLog({
+        user_id: req.user.id,
+        action: LogAction.VIEWED_USER_PROFILE,
+        details: { viewed_username: username },
+        ip_address: req.ip
+      });
+    }
+    
+    // Hassas bilgileri çıkart
+    const { password, ...userWithoutPassword } = user;
+    
+    res.status(200).json({
+      status: 'success',
+      data: { user: userWithoutPassword }
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Kullanıcı bilgileri alınırken bir hata oluştu'
     });
   }
 }; 

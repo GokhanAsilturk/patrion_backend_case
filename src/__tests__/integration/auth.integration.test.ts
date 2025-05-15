@@ -1,8 +1,15 @@
 import request from 'supertest';
-import server from '../../index';
-import pool from '../../config/database';
+import express from 'express';
+import http from 'http';
+import { AddressInfo } from 'net';
 import jwt from 'jsonwebtoken';
 import config from '../../config/config';
+import routes from '../../routes';
+import { httpLogger } from '../../middlewares/logger.middleware';
+import { closeServer } from '../../index';
+
+// Jest ortamında çalıştığından emin ol
+process.env.NODE_ENV = 'test';
 
 // Mock database ve MQTT
 jest.mock('../../config/database', () => ({
@@ -25,25 +32,63 @@ jest.mock('bcrypt', () => ({
   hash: jest.fn().mockImplementation((password) => Promise.resolve(`hashed_${password}`))
 }));
 
-describe('Auth API Integration Tests', () => {
-  let app: any;
+// Test için kendi sunucu örneğimizi oluşturalım
+const createTestServer = () => {
+  // Yeni bir Express uygulaması oluştur
+  const app = express();
+  
+  // Middleware'leri ekle
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(httpLogger);
+  
+  // API rotalarını ekle
+  app.use('/api', routes);
+  
+  // HTTP server
+  const server = http.createServer(app);
+  
+  // Açık bir portta dinlemeye başla
+  server.listen(0); // 0 = kullanılabilir herhangi bir port
+  
+  return server;
+};
 
-  beforeAll(() => {
-    app = server;
+describe('Auth API Integration Tests', () => {
+  let server: http.Server;
+  let baseUrl: string;
+
+  beforeAll(async () => {
+    closeServer(); // Ana sunucuyu kapat (varsa)
+    
+    // Test için yeni bir sunucu oluştur
+    server = createTestServer();
+    
+    // Portu al
+    const address = server.address() as AddressInfo;
+    baseUrl = `http://localhost:${address.port}/api`;
+    
+    // Setup tamamlandı
+    console.log(`Test server running at port ${address.port}`);
   });
 
-  afterAll(done => {
-    server.close(done);
+  afterAll(async () => {
+    return new Promise<void>((resolve) => {
+      server.close(() => {
+        console.log('Test server closed');
+        resolve();
+      });
+    });
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('POST /api/auth/login', () => {
+  describe('POST /auth/login', () => {
     it('should return 400 for invalid input', async () => {
-      const response = await request(app)
-        .post('/api/auth/login')
+      const response = await request(baseUrl)
+        .post('/auth/login')
         .send({
           password: 'password123'
           // Eksik email
@@ -56,7 +101,7 @@ describe('Auth API Integration Tests', () => {
 
     it('should return 401 for non-existent user', async () => {
       // Mock database response
-      (pool.query as jest.Mock).mockResolvedValueOnce({ 
+      (require('../../config/database').query as jest.Mock).mockResolvedValueOnce({ 
         rows: [],
         rowCount: 0,
         command: '',
@@ -64,8 +109,8 @@ describe('Auth API Integration Tests', () => {
         fields: []
       });
 
-      const response = await request(app)
-        .post('/api/auth/login')
+      const response = await request(baseUrl)
+        .post('/auth/login')
         .send({
           email: 'nonexistent@example.com',
           password: 'password123'
@@ -91,7 +136,7 @@ describe('Auth API Integration Tests', () => {
       };
 
       // Mock database response
-      (pool.query as jest.Mock)
+      (require('../../config/database').query as jest.Mock)
         .mockResolvedValueOnce({ 
           rows: [mockUser],
           rowCount: 1,
@@ -107,8 +152,8 @@ describe('Auth API Integration Tests', () => {
           fields: []
         }); // createUserLog için
 
-      const response = await request(app)
-        .post('/api/auth/login')
+      const response = await request(baseUrl)
+        .post('/auth/login')
         .send({
           email: 'test@example.com',
           password: 'password123'
@@ -136,10 +181,10 @@ describe('Auth API Integration Tests', () => {
     });
   });
 
-  describe('POST /api/auth/register', () => {
+  describe('POST /auth/register', () => {
     it('should return 400 for invalid input', async () => {
-      const response = await request(app)
-        .post('/api/auth/register')
+      const response = await request(baseUrl)
+        .post('/auth/register')
         .send({
           username: 'new',
           password: 'pass', // Çok kısa şifre
@@ -154,7 +199,7 @@ describe('Auth API Integration Tests', () => {
 
     it('should return 409 if username already exists', async () => {
       // Mock database response - Kullanıcının zaten var olduğunu simüle et
-      (pool.query as jest.Mock)
+      (require('../../config/database').query as jest.Mock)
         .mockResolvedValueOnce({ 
           rows: [{ id: 1, email: 'existing@example.com' }],
           rowCount: 1,
@@ -163,8 +208,8 @@ describe('Auth API Integration Tests', () => {
           fields: []
         }); // findUserByEmail için
 
-      const response = await request(app)
-        .post('/api/auth/register')
+      const response = await request(baseUrl)
+        .post('/auth/register')
         .send({
           username: 'existinguser',
           email: 'existing@example.com',
@@ -195,7 +240,7 @@ describe('Auth API Integration Tests', () => {
       };
 
       // İlk çağrıda kullanıcı bulunamadığını simüle et
-      (pool.query as jest.Mock).mockImplementationOnce(() => ({
+      (require('../../config/database').query as jest.Mock).mockImplementationOnce(() => ({
         rows: [],
         rowCount: 0,
         command: '',
@@ -204,7 +249,7 @@ describe('Auth API Integration Tests', () => {
       }));
       
       // İkinci çağrıda kullanıcı oluşturulduğunu simüle et
-      (pool.query as jest.Mock).mockImplementationOnce(() => ({
+      (require('../../config/database').query as jest.Mock).mockImplementationOnce(() => ({
         rows: [newUser],
         rowCount: 1,
         command: '',
@@ -213,7 +258,7 @@ describe('Auth API Integration Tests', () => {
       }));
       
       // Üçüncü çağrıda log oluşturulduğunu simüle et
-      (pool.query as jest.Mock).mockImplementationOnce(() => ({
+      (require('../../config/database').query as jest.Mock).mockImplementationOnce(() => ({
         rows: [{ id: 1 }],
         rowCount: 1,
         command: '',
@@ -221,8 +266,8 @@ describe('Auth API Integration Tests', () => {
         fields: []
       }));
 
-      const response = await request(app)
-        .post('/api/auth/register')
+      const response = await request(baseUrl)
+        .post('/auth/register')
         .send({
           username: 'newuser123',
           email: 'new123@example.com',

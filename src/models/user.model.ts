@@ -176,4 +176,20 @@ export const updateUser = async (id: number, userData: Partial<UserInput>): Prom
     console.error('Kullanıcı güncellenirken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
     throw error;
   }
+};
+
+export const findUserByUsername = async (username: string): Promise<User | null> => {
+  const query = `
+    SELECT id, username, email, password, full_name as "fullName", company_id, role, created_at as "createdAt", updated_at as "updatedAt"
+    FROM users
+    WHERE username = $1;
+  `;
+
+  try {
+    const result: QueryResult = await pool.query(query, [username]);
+    return result.rows[0] as User || null;
+  } catch (error) {
+    console.error('Kullanıcı adı ile kullanıcı aranırken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
+    throw error;
+  }
 }; 

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
+import { AuthRequest } from '../types/auth';
 
 /**
  * @swagger
@@ -63,7 +64,7 @@ import * as authService from '../services/auth.service';
  *       409:
  *         description: Kullanıcı adı veya email zaten kullanımda
  */
-export const register = async (req: Request, res: Response): Promise<void> => {
+export const register = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userData = req.body;
     const newUser = await authService.register(userData);
@@ -142,7 +143,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
  *       401:
  *         description: Geçersiz kimlik bilgileri
  */
-export const login = async (req: Request, res: Response): Promise<void> => {
+export const login = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const credentials = req.body;
     const user = await authService.login(credentials);

@@ -14,7 +14,15 @@ router.get('/profile', authenticate, userController.getProfile);
 // Sadece admin kullanıcılarının erişebileceği rotalar
 router.get('/', authenticate, authorize([UserRole.SYSTEM_ADMIN]), userController.getAllUsers);
 
-// ID'ye göre kullanıcı getirme
+// Kullanıcı adına göre kullanıcı getirme
+router.get('/username/:username', 
+  authenticate, 
+  authorize([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN]), 
+  validate(userValidation.getByUsername), 
+  userController.getUserByUsername
+);
+
+// ID'ye göre kullanıcı getirme - Bunu en sona alıyoruz çünkü "/:id" tüm parametreleri yakalayabilir
 router.get('/:id', 
   authenticate, 
   authorize([UserRole.SYSTEM_ADMIN, UserRole.COMPANY_ADMIN]), 

@@ -18,20 +18,20 @@ export const register = async (userData: UserInput): Promise<UserResponse> => {
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
     
-    // Kullanıcıyı veritabanına kaydet
-    const user = await userModel.createUser({
-      ...userData,
+    // İstek gövdesinde full_name kullanılıyorsa, fullName'e dönüştür
+    const { full_name, ...rest } = userData as any;
+    const userDataWithCorrectFields = {
+      ...rest,
+      fullName: full_name || userData.fullName,
       password: hashedPassword
-    });
+    };
+    
+    // Kullanıcıyı veritabanına kaydet
+    const user = await userModel.createUser(userDataWithCorrectFields);
 
-    // JWT token oluştur
-    const token = generateToken(user);
-
-    // Hassas bilgileri çıkar ve yanıt döndür
     const { password, ...userWithoutPassword } = user;
     return {
-      ...userWithoutPassword,
-      token
+      ...userWithoutPassword
     };
   } catch (error) {
     console.error('Kullanıcı kaydı sırasında hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');

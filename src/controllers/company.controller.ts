@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as companyModel from '../models/company.model';
 import { log } from '../utils/logger';
+import { AuthRequest } from '../types/auth';
 
 /**
  * @swagger
@@ -27,7 +28,7 @@ import { log } from '../utils/logger';
  *                     companies:
  *                       type: array
  */
-export const getAllCompanies = async (req: Request, res: Response): Promise<void> => {
+export const getAllCompanies = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const companies = await companyModel.getAllCompanies();
     
@@ -68,7 +69,7 @@ export const getAllCompanies = async (req: Request, res: Response): Promise<void
  *       404:
  *         description: Şirket bulunamadı
  */
-export const getCompanyById = async (req: Request, res: Response): Promise<void> => {
+export const getCompanyById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
     
@@ -140,12 +141,12 @@ export const getCompanyById = async (req: Request, res: Response): Promise<void>
  *       400:
  *         description: Geçersiz istek verisi
  */
-export const createCompany = async (req: Request, res: Response): Promise<void> => {
+export const createCompany = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const companyData = req.body;
     
     // Kullanıcının system_admin olup olmadığını kontrol et
-    if ((req.user as any)?.role !== 'system_admin') {
+    if (req.user?.role !== 'system_admin') {
       res.status(403).json({
         status: 'error',
         message: 'Bu işlem için yetkiniz bulunmamaktadır. Sadece System Admin şirket oluşturabilir.'
@@ -210,13 +211,13 @@ export const createCompany = async (req: Request, res: Response): Promise<void> 
  *       404:
  *         description: Şirket bulunamadı
  */
-export const updateCompany = async (req: Request, res: Response): Promise<void> => {
+export const updateCompany = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const id = parseInt(req.params.id);
     const updateData = req.body;
     
     // Kullanıcının system_admin olup olmadığını kontrol et
-    if ((req.user as any)?.role !== 'system_admin') {
+    if (req.user?.role !== 'system_admin') {
       res.status(403).json({
         status: 'error',
         message: 'Bu işlem için yetkiniz bulunmamaktadır. Sadece System Admin şirketleri güncelleyebilir.'

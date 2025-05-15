@@ -49,6 +49,10 @@ export const getCompanyById = async (id: number): Promise<Company | null> => {
 
   try {
     const result: QueryResult = await pool.query(query, [id]);
+    if (!result || !result.rows) {
+      console.error('Sorgu sonucu bulunamadı veya geçersiz');
+      return null;
+    }
     return result.rows[0] as Company || null;
   } catch (error) {
     console.error('ID ile şirket aranırken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
