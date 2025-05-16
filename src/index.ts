@@ -15,6 +15,8 @@ import { log } from './utils/logger';
 import swaggerUI from 'swagger-ui-express';
 import swaggerSpec from './utils/swagger';
 import seedDatabase from './seeds/seed';
+import { standardRateLimiter, strictRateLimiter } from './middlewares/rate-limiter.middleware';
+import { initInfluxDB } from './services/influxdb.service';
 // Environment variables
 dotenv.config();
 
@@ -29,6 +31,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // HTTP request logger
 app.use(httpLogger);
+
+// Global rate limiter - tüm API'ler için
+app.use(standardRateLimiter);
 
 // Initialize database tables
 const initDatabase = async () => {
@@ -137,6 +142,9 @@ export const startServer = async () => {
       
       // Initialize MQTT client
       initMqttClient();
+      
+      // Initialize InfluxDB client
+      initInfluxDB();
       
       resolve();
     });

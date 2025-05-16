@@ -27,13 +27,13 @@ import { parseLocalDate } from '../utils/date-utils';
  *         schema:
  *           type: string
  *           format: date
- *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
+ *         description: "Başlangıç tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
+ *         description: "Bitiş tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: page
  *         schema:
@@ -90,13 +90,13 @@ import { parseLocalDate } from '../utils/date-utils';
  *         schema:
  *           type: string
  *           format: date
- *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
+ *         description: "Başlangıç tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
+ *         description: "Bitiş tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: page
  *         schema:
@@ -278,13 +278,13 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
  *         schema:
  *           type: string
  *           format: date
- *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
+ *         description: "Başlangıç tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
+ *         description: "Bitiş tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: page
  *         schema:
@@ -375,13 +375,13 @@ export const getLogsByAction = async (req: AuthRequest, res: Response): Promise<
  *         schema:
  *           type: string
  *           format: date
- *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
+ *         description: "Başlangıç tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
+ *         description: "Bitiş tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: groupBy
  *         schema:
@@ -460,13 +460,13 @@ export const getLogsAnalytics = async (req: AuthRequest, res: Response): Promise
  *         schema:
  *           type: string
  *           format: date
- *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
+ *         description: "Başlangıç tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
+ *         description: "Bitiş tarihi (Format - GG/AA/YYYY)"
  *     responses:
  *       200:
  *         description: Kullanıcı aktivite istatistikleri başarıyla getirildi
@@ -507,13 +507,13 @@ export const getLogsAnalytics = async (req: AuthRequest, res: Response): Promise
  *         schema:
  *           type: string
  *           format: date
- *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
+ *         description: "Başlangıç tarihi (Format - GG/AA/YYYY)"
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
  *           format: date
- *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
+ *         description: "Bitiş tarihi (Format - GG/AA/YYYY)"
  *     responses:
  *       200:
  *         description: Kullanıcı aktivite istatistikleri başarıyla getirildi

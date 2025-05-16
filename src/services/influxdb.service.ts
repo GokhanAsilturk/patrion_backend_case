@@ -1,130 +1,176 @@
-import { Point } from '@influxdata/influxdb-client';
+import { InfluxDB, Point, WriteApi } from '@influxdata/influxdb-client';
 import config from '../config/config';
 import { MQTTSensorData } from '../types/sensor';
+import { log } from '../utils/logger';
 
-// InfluxDB bağlantısı için koşullu kontrol
-let writeClient: any;
-let queryClient: any;
-
-try {
-  const { writeClient: wc, queryClient: qc } = require('../config/influxdb');
-  writeClient = wc;
-  queryClient = qc;
-  console.log('InfluxDB bağlantısı başarıyla kuruldu');
-} catch (error) {
-  console.warn('InfluxDB bağlantısı kurulamadı, sadece PostgreSQL kullanılacak:', 
-    error instanceof Error ? error.message : 'Bilinmeyen hata');
-}
+let client: InfluxDB;
+let writeApi: WriteApi;
 
 /**
- * InfluxDB'nin bağlı olup olmadığını kontrol eder
+ * InfluxDB istemcisini başlatır
  */
-const isInfluxDBConnected = (): boolean => {
-  return !!writeClient && !!queryClient;
+export const initInfluxDB = (): void => {
+  try {
+    const { url, token, org, bucket } = config.influxdb;
+    
+    if (!token) {
+      log.warn('InfluxDB token tanımlanmadı. InfluxDB desteği devre dışı bırakıldı.');
+      return;
+    }
+    
+    client = new InfluxDB({ url, token });
+    writeApi = client.getWriteApi(org, bucket, 'ns');
+    
+    log.info('InfluxDB istemcisi başlatıldı', {
+      url,
+      org,
+      bucket
+    });
+  } catch (error) {
+    log.error('InfluxDB istemcisi başlatılırken hata:', { 
+      error: error instanceof Error ? error.message : 'Bilinmeyen hata' 
+    });
+  }
 };
 
 /**
  * Sensör verisini InfluxDB'ye yazar
+ * @param sensorData Sensörden gelen veri
  */
-export const writeSensorData = async (data: MQTTSensorData): Promise<void> => {
-  // InfluxDB bağlantısı yoksa işlemi atla
-  if (!isInfluxDBConnected()) {
-    console.log('InfluxDB bağlantısı yok, veri kaydedilmiyor');
-    return;
-  }
-
+export const writeSensorData = async (sensorData: MQTTSensorData): Promise<void> => {
   try {
-    // Sensör verisi için yeni bir Point oluştur
-    const point = new Point('sensor_reading')
-      .tag('sensor_id', data.sensor_id)
-      .timestamp(new Date(data.timestamp * 1000));
+    if (!writeApi) {
+      log.warn('InfluxDB istemcisi başlatılmadı. Veri yazılamadı.');
+      return;
+    }
     
-    // Dinamik olarak tüm değerleri ekle
-    Object.entries(data).forEach(([key, value]) => {
-      if (key !== 'sensor_id' && key !== 'timestamp') {
-        if (typeof value === 'number') {
-          point.floatField(key, value);
-        } else if (typeof value === 'string') {
-          point.stringField(key, value);
-        } else if (typeof value === 'boolean') {
-          point.booleanField(key, value);
-        } else if (value !== null && typeof value === 'object') {
-          point.stringField(key, JSON.stringify(value));
-        }
+    // InfluxDB için point (nokta) oluşturma
+    const point = new Point('sensor_data')
+      .tag('sensor_id', sensorData.sensor_id)
+      .timestamp(new Date(sensorData.timestamp * 1000)); // Unix timestamp'i JavaScript Date objesine çevir
+    
+    // Sensör verilerindeki tüm sayısal değerleri ekle
+    Object.entries(sensorData).forEach(([key, value]) => {
+      if (key !== 'sensor_id' && key !== 'timestamp' && typeof value === 'number') {
+        point.floatField(key, value);
       }
     });
     
-    // Veriyi InfluxDB'ye yaz
-    writeClient.writePoint(point);
-    await writeClient.flush();
+    // InfluxDB'ye yaz
+    writeApi.writePoint(point);
+    await writeApi.flush();
     
-    console.log(`Sensör verisi InfluxDB'ye kaydedildi: ${data.sensor_id}`);
-    return;
+    log.info('Veri başarıyla InfluxDB\'ye yazıldı', {
+      sensor_id: sensorData.sensor_id,
+      timestamp: sensorData.timestamp
+    });
   } catch (error) {
-    console.error('InfluxDB\'ye veri yazılırken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
-    // Hatayı fırlatma, sadece logla
-    console.warn('InfluxDB hatası uygulama akışını durdurmadı, devam ediliyor');
+    log.error('InfluxDB\'ye veri yazılırken hata:', { 
+      error: error instanceof Error ? error.message : 'Bilinmeyen hata' 
+    });
+    throw error;
   }
 };
 
 /**
- * Son 24 saat içindeki sensör verilerini getirir
+ * Bir sensöre ait belirli zaman aralığındaki verileri sorgular
+ * @param sensorId Sensör ID
+ * @param start Başlangıç zamanı (Unix timestamp)
+ * @param end Bitiş zamanı (Unix timestamp)
  */
-export const getSensorDataLast24Hours = async (sensorId: string): Promise<any[]> => {
-  // InfluxDB bağlantısı yoksa boş dizi döndür
-  if (!isInfluxDBConnected()) {
-    console.log('InfluxDB bağlantısı yok, veri alınamıyor');
-    return [];
-  }
-
+export const querySensorData = async (sensorId: string, start: number, end: number): Promise<any[]> => {
   try {
+    if (!client) {
+      log.warn('InfluxDB istemcisi başlatılmadı. Veri sorgulanamadı.');
+      return [];
+    }
+    
+    const { org } = config.influxdb;
+    const queryApi = client.getQueryApi(org);
+    
+    // Flux sorgu dili
     const query = `
       from(bucket: "${config.influxdb.bucket}")
-        |> range(start: -24h)
-        |> filter(fn: (r) => r._measurement == "sensor_reading")
+        |> range(start: ${new Date(start * 1000).toISOString()}, stop: ${new Date(end * 1000).toISOString()})
+        |> filter(fn: (r) => r._measurement == "sensor_data")
         |> filter(fn: (r) => r.sensor_id == "${sensorId}")
     `;
     
-    const results: any[] = [];
+    // Sorguyu çalıştır
+    const result: any[] = [];
+    const rows = await queryApi.collectRows(query);
     
-    for await (const { values, tableMeta } of queryClient.iterateRows(query)) {
-      results.push(tableMeta.toObject(values));
-    }
+    rows.forEach((row: any) => {
+      result.push({
+        time: new Date(row._time).getTime() / 1000, // JavaScript timestamp'i Unix timestamp'e çevir
+        field: row._field,
+        value: row._value,
+        sensor_id: row.sensor_id
+      });
+    });
     
-    return results;
+    return result;
   } catch (error) {
-    console.error('InfluxDB\'den veri alınırken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
-    return []; // Hata durumunda boş dizi döndür
+    log.error('InfluxDB\'den veri sorgulanırken hata:', { 
+      error: error instanceof Error ? error.message : 'Bilinmeyen hata' 
+    });
+    throw error;
   }
 };
 
 /**
- * Belirli bir zaman aralığındaki sensör verilerini getirir
+ * İstatistiksel analiz için sensör verilerini sorgular (örn. ortalama, min, max)
+ * @param sensorId Sensör ID
+ * @param field İstatistik hesaplanacak alan (örn. "temperature", "humidity")
+ * @param aggregateWindow Gruplama penceresi (örn. "1h" = 1 saat)
+ * @param start Başlangıç zamanı (Unix timestamp)
+ * @param end Bitiş zamanı (Unix timestamp) 
  */
-export const getSensorDataInRange = async (sensorId: string, startTime: Date, endTime: Date): Promise<any[]> => {
-  // InfluxDB bağlantısı yoksa boş dizi döndür
-  if (!isInfluxDBConnected()) {
-    console.log('InfluxDB bağlantısı yok, veri alınamıyor');
-    return [];
-  }
-
+export const queryAggregatedData = async (
+  sensorId: string,
+  field: string,
+  aggregateWindow: string = "1h",
+  start: number,
+  end: number
+): Promise<any[]> => {
   try {
-    const query = `
-      from(bucket: "${config.influxdb.bucket}")
-        |> range(start: ${startTime.toISOString()}, stop: ${endTime.toISOString()})
-        |> filter(fn: (r) => r._measurement == "sensor_reading")
-        |> filter(fn: (r) => r.sensor_id == "${sensorId}")
-    `;
-    
-    const results: any[] = [];
-    
-    for await (const { values, tableMeta } of queryClient.iterateRows(query)) {
-      results.push(tableMeta.toObject(values));
+    if (!client) {
+      log.warn('InfluxDB istemcisi başlatılmadı. Veri sorgulanamadı.');
+      return [];
     }
     
-    return results;
+    const { org } = config.influxdb;
+    const queryApi = client.getQueryApi(org);
+    
+    // Zaman pencerelerine bölerek istatistiksel analiz yapan Flux sorgusu
+    const query = `
+      from(bucket: "${config.influxdb.bucket}")
+        |> range(start: ${new Date(start * 1000).toISOString()}, stop: ${new Date(end * 1000).toISOString()})
+        |> filter(fn: (r) => r._measurement == "sensor_data")
+        |> filter(fn: (r) => r.sensor_id == "${sensorId}")
+        |> filter(fn: (r) => r._field == "${field}")
+        |> aggregateWindow(every: ${aggregateWindow}, fn: mean, createEmpty: false)
+        |> yield(name: "mean")
+    `;
+    
+    // Sorguyu çalıştır
+    const result: any[] = [];
+    const rows = await queryApi.collectRows(query);
+    
+    rows.forEach((row: any) => {
+      result.push({
+        time: new Date(row._time).getTime() / 1000,
+        mean: row._value,
+        sensor_id: row.sensor_id,
+        field: row._field
+      });
+    });
+    
+    return result;
   } catch (error) {
-    console.error('InfluxDB\'den veri alınırken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
-    return []; // Hata durumunda boş dizi döndür
+    log.error('InfluxDB\'den istatistik sorgulanırken hata:', { 
+      error: error instanceof Error ? error.message : 'Bilinmeyen hata' 
+    });
+    throw error;
   }
 }; 

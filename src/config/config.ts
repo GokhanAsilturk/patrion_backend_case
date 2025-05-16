@@ -22,15 +22,15 @@ const config = {
   
   mqtt: {
     broker: process.env.MQTT_BROKER || 'mqtt://localhost:1883',
+    clientId: process.env.MQTT_CLIENT_ID || 'sensor_tracking_server',
     username: process.env.MQTT_USERNAME || '',
-    password: process.env.MQTT_PASSWORD || '',
-    clientId: process.env.MQTT_CLIENT_ID || 'patrion_sensor_tracker'
+    password: process.env.MQTT_PASSWORD || ''
   },
   
   influxdb: {
     url: process.env.INFLUX_URL || 'http://localhost:8086',
-    token: process.env.INFLUX_TOKEN || 'my-token',
-    org: process.env.INFLUX_ORG || 'my-org',
+    token: process.env.INFLUX_TOKEN || '',
+    org: process.env.INFLUX_ORG || 'sensor_org',
     bucket: process.env.INFLUX_BUCKET || 'sensor_data'
   }
 };

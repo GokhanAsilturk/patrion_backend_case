@@ -1,22 +1,22 @@
 FROM node:18-alpine
 
-# Çalışma dizinini ayarla
-WORKDIR /app
+# Çalışma dizinini oluştur
+WORKDIR /usr/src/app
 
-# Package.json ve package-lock.json dosyalarını kopyala
+# Paket dosyalarını kopyala
 COPY package*.json ./
 
 # Bağımlılıkları yükle
-RUN npm ci --only=production
+RUN npm install
 
-# Projeyi kopyala
+# Kaynak kodları kopyala
 COPY . .
 
-# TypeScript dosyalarını JavaScript'e dönüştür
+# TypeScript'i JavaScript'e derle
 RUN npm run build
 
-# Uygulamayı çalıştır
-CMD ["npm", "start"]
+# Uygulama için gerekli portu aç
+EXPOSE 3000
 
-# Port ayarları
-EXPOSE 3000 
+# Uygulamayı başlat
+CMD ["npm", "start"] 

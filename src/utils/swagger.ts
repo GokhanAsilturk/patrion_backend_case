@@ -32,6 +32,12 @@ const options: swaggerJSDoc.Options = {
       {
         bearerAuth: []
       }
+    ],
+    tags: [
+      {
+        name: 'Sensors',
+        description: 'Sensör verilerini yönetmek için API uç noktaları'
+      }
     ]
   },
   apis: [

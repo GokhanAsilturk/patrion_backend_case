@@ -1,0 +1,27 @@
+1747400824: mosquitto version 2.0.18 starting
+1747400824: Config loaded from /mosquitto/config/mosquitto.conf.
+1747400824: Opening ipv4 listen socket on port 1883.
+1747400824: Opening ipv6 listen socket on port 1883.
+1747400824: Opening websockets listen socket on port 9001.
+1747400824: mosquitto version 2.0.18 running
+1747400825: New connection from 172.18.0.5:56398 on port 1883.
+1747400825: New client connected from 172.18.0.5:56398 as sensor_tracking_server (p2, c1, k60).
+1747400825: No will message specified.
+1747400825: Sending CONNACK to sensor_tracking_server (0, 0)
+1747400825: Received SUBSCRIBE from sensor_tracking_server
+1747400825: 	sensors/+/data (QoS 0)
+1747400825: sensor_tracking_server 0 sensors/+/data
+1747400825: Sending SUBACK to sensor_tracking_server
+1747400825: Received SUBSCRIBE from sensor_tracking_server
+1747400825: 	sensors/+/status (QoS 0)
+1747400825: sensor_tracking_server 0 sensors/+/status
+1747400825: Sending SUBACK to sensor_tracking_server
+1747400885: Received PINGREQ from sensor_tracking_server
+1747400885: Sending PINGRESP to sensor_tracking_server
+1747400945: Received PINGREQ from sensor_tracking_server
+1747400945: Sending PINGRESP to sensor_tracking_server
+1747401005: Received PINGREQ from sensor_tracking_server
+1747401005: Sending PINGRESP to sensor_tracking_server
+1747401020: Client sensor_tracking_server closed its connection.
+1747401021: mosquitto version 2.0.18 terminating
+1747401021: Saving in-memory database to /mosquitto/data//mosquitto.db.

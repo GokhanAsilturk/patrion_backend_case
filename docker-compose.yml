@@ -5,28 +5,29 @@ services:
     build: .
     ports:
       - "3000:3000"
+    depends_on:
+      - postgres
+      - influxdb
+      - mqtt
     environment:
       - NODE_ENV=production
       - PORT=3000
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USER=postgres
-      - DB_PASSWORD=postgres
+      - DB_PASSWORD=1234
       - DB_NAME=patrion_case
       - JWT_SECRET=patrion_jwt_secret_key
       - JWT_EXPIRES_IN=1d
-      - MQTT_BROKER=mqtt://mosquitto:1883
+      - MQTT_BROKER=mqtt://mqtt:1883
+      - MQTT_CLIENT_ID=sensor_tracking_server
       - INFLUX_URL=http://influxdb:8086
-      - INFLUX_TOKEN=my-token
-      - INFLUX_ORG=my-org
+      - INFLUX_TOKEN=influxdb_secret_token_123456789
+      - INFLUX_ORG=sensor_org
       - INFLUX_BUCKET=sensor_data
-    depends_on:
-      - postgres
-      - influxdb
-      - mosquitto
-    restart: unless-stopped
     volumes:
-      - ./logs:/app/logs
+      - ./logs:/usr/src/app/logs
+    restart: unless-stopped
 
   postgres:
     image: postgres:14-alpine
@@ -34,7 +35,7 @@ services:
       - "5432:5432"
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=1234
       - POSTGRES_DB=patrion_case
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -47,27 +48,25 @@ services:
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
       - DOCKER_INFLUXDB_INIT_USERNAME=admin
-      - DOCKER_INFLUXDB_INIT_PASSWORD=adminadmin
-      - DOCKER_INFLUXDB_INIT_ORG=my-org
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword
+      - DOCKER_INFLUXDB_INIT_ORG=sensor_org
       - DOCKER_INFLUXDB_INIT_BUCKET=sensor_data
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-token
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=influxdb_secret_token_123456789
     volumes:
       - influxdb_data:/var/lib/influxdb2
     restart: unless-stopped
 
-  mosquitto:
-    image: eclipse-mosquitto:2
+  mqtt:
+    image: eclipse-mosquitto:2.0.18
     ports:
       - "1883:1883"
       - "9001:9001"
     volumes:
-      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - mosquitto_data:/mosquitto/data
-      - mosquitto_log:/mosquitto/log
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
     restart: unless-stopped
 
 volumes:
   postgres_data:
-  influxdb_data:
-  mosquitto_data:
-  mosquitto_log: 
+  influxdb_data: 
