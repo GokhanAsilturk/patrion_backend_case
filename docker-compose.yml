@@ -22,7 +22,7 @@ services:
       - MQTT_BROKER=mqtt://mqtt:1883
       - MQTT_CLIENT_ID=sensor_tracking_server
       - INFLUX_URL=http://influxdb:8086
-      - INFLUX_TOKEN=influxdb_secret_token_123456789
+      - INFLUX_TOKEN=mCjO945P8QqKpYoLTcMpqovvVRjIzMWNH52u6PgRR9yRYrMXs5YGAPgTJ-_NfuLC9wf6ADVLBKIUacw7UTxVHw==
       - INFLUX_ORG=sensor_org
       - INFLUX_BUCKET=sensor_data
     volumes:
@@ -51,7 +51,7 @@ services:
       - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword
       - DOCKER_INFLUXDB_INIT_ORG=sensor_org
       - DOCKER_INFLUXDB_INIT_BUCKET=sensor_data
-      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=influxdb_secret_token_123456789
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=mCjO945P8QqKpYoLTcMpqovvVRjIzMWNH52u6PgRR9yRYrMXs5YGAPgTJ-_NfuLC9wf6ADVLBKIUacw7UTxVHw==
     volumes:
       - influxdb_data:/var/lib/influxdb2
     restart: unless-stopped

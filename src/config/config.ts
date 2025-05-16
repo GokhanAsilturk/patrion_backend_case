@@ -29,7 +29,7 @@ const config = {
   
   influxdb: {
     url: process.env.INFLUX_URL || 'http://localhost:8086',
-    token: process.env.INFLUX_TOKEN || '',
+    token: process.env.INFLUX_TOKEN || 'influxdb_secret_token_123456789',
     org: process.env.INFLUX_ORG || 'sensor_org',
     bucket: process.env.INFLUX_BUCKET || 'sensor_data'
   }

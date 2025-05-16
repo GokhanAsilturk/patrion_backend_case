@@ -27,7 +27,7 @@
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
-    "mqtt": "^5.3.4",
+    "mqtt": "^5.13.0",
     "pg": "^8.11.3",
     "socket.io": "^4.7.2",
     "swagger-jsdoc": "^6.2.8",

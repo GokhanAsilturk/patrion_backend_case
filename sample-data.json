@@ -1,0 +1,32 @@
+[
+  {
+    "sensor_id": "temp_sensor_01",
+    "timestamp": 1716772800,
+    "temperature": 23.5,
+    "humidity": 48.2
+  },
+  {
+    "sensor_id": "temp_sensor_01",
+    "timestamp": 1716772860,
+    "temperature": 23.6,
+    "humidity": 48.0
+  },
+  {
+    "sensor_id": "temp_sensor_01",
+    "timestamp": 1716772920,
+    "temperature": 23.8,
+    "humidity": 47.8
+  },
+  {
+    "sensor_id": "temp_sensor_01",
+    "timestamp": 1716772980,
+    "temperature": 24.0,
+    "humidity": 47.5
+  },
+  {
+    "sensor_id": "temp_sensor_01",
+    "timestamp": 1716773040,
+    "temperature": 24.2,
+    "humidity": 47.2
+  }
+] 

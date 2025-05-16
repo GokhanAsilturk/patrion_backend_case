@@ -25,3 +25,285 @@
 1747401020: Client sensor_tracking_server closed its connection.
 1747401021: mosquitto version 2.0.18 terminating
 1747401021: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1747401144: mosquitto version 2.0.18 starting
+1747401144: Config loaded from /mosquitto/config/mosquitto.conf.
+1747401144: Opening ipv4 listen socket on port 1883.
+1747401144: Opening ipv6 listen socket on port 1883.
+1747401144: Opening websockets listen socket on port 9001.
+1747401144: mosquitto version 2.0.18 running
+1747401146: New connection from 172.18.0.5:47670 on port 1883.
+1747401146: New client connected from 172.18.0.5:47670 as sensor_tracking_server (p2, c1, k60).
+1747401146: No will message specified.
+1747401146: Sending CONNACK to sensor_tracking_server (0, 0)
+1747401146: Received SUBSCRIBE from sensor_tracking_server
+1747401146: 	sensors/+/data (QoS 0)
+1747401146: sensor_tracking_server 0 sensors/+/data
+1747401146: Sending SUBACK to sensor_tracking_server
+1747401146: Received SUBSCRIBE from sensor_tracking_server
+1747401146: 	sensors/+/status (QoS 0)
+1747401146: sensor_tracking_server 0 sensors/+/status
+1747401146: Sending SUBACK to sensor_tracking_server
+1747401206: Received PINGREQ from sensor_tracking_server
+1747401206: Sending PINGRESP to sensor_tracking_server
+1747401266: Received PINGREQ from sensor_tracking_server
+1747401266: Sending PINGRESP to sensor_tracking_server
+1747401326: Received PINGREQ from sensor_tracking_server
+1747401326: Sending PINGRESP to sensor_tracking_server
+1747401386: Received PINGREQ from sensor_tracking_server
+1747401386: Sending PINGRESP to sensor_tracking_server
+1747401446: Received PINGREQ from sensor_tracking_server
+1747401446: Sending PINGRESP to sensor_tracking_server
+1747401506: Received PINGREQ from sensor_tracking_server
+1747401506: Sending PINGRESP to sensor_tracking_server
+1747401566: Received PINGREQ from sensor_tracking_server
+1747401566: Sending PINGRESP to sensor_tracking_server
+1747401626: Received PINGREQ from sensor_tracking_server
+1747401626: Sending PINGRESP to sensor_tracking_server
+1747401686: Received PINGREQ from sensor_tracking_server
+1747401686: Sending PINGRESP to sensor_tracking_server
+1747401144: mosquitto versi1747402026: mosquitto version 2.0.18 starting
+1747402026: Config loaded from /mosquitto/config/mosquitto.conf.
+1747402026: Opening ipv4 listen socket on port 1883.
+1747402026: Opening ipv6 listen socket on port 1883.
+1747402026: Opening websockets listen socket on port 9001.
+1747402026: mosquitto version 2.0.18 running
+1747402030: New connection from 172.18.0.5:60932 on port 1883.
+1747402030: New client connected from 172.18.0.5:60932 as sensor_tracking_server (p2, c1, k60).
+1747402030: No will message specified.
+1747402030: Sending CONNACK to sensor_tracking_server (0, 0)
+1747402030: Received SUBSCRIBE from sensor_tracking_server
+1747402030: 	sensors/+/data (QoS 0)
+1747402030: sensor_tracking_server 0 sensors/+/data
+1747402030: Sending SUBACK to sensor_tracking_server
+1747402030: Received SUBSCRIBE from sensor_tracking_server
+1747402030: 	sensors/+/status (QoS 0)
+1747402030: sensor_tracking_server 0 sensors/+/status
+1747402030: Sending SUBACK to sensor_tracking_server
+1747402090: Received PINGREQ from sensor_tracking_server
+1747402090: Sending PINGRESP to sensor_tracking_server
+1747402150: Received PINGREQ from sensor_tracking_server
+1747402150: Sending PINGRESP to sensor_tracking_server
+1747402210: Received PINGREQ from sensor_tracking_server
+1747402210: Sending PINGRESP to sensor_tracking_server
+1747402270: Received PINGREQ from sensor_tracking_server
+1747402270: Sending PINGRESP to sensor_tracking_server
+1747402311: Client sensor_tracking_server closed its connection.
+1747402311: mosquitto version 2.0.18 terminating
+1747402311: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1747402339: mosquitto version 2.0.18 starting
+1747402339: Config loaded from /mosquitto/config/mosquitto.conf.
+1747402339: Opening ipv4 listen socket on port 1883.
+1747402339: Opening ipv6 listen socket on port 1883.
+1747402339: Opening websockets listen socket on port 9001.
+1747402339: mosquitto version 2.0.18 running
+1747402340: New connection from 172.18.0.5:44708 on port 1883.
+1747402340: New client connected from 172.18.0.5:44708 as sensor_tracking_server (p2, c1, k60).
+1747402340: No will message specified.
+1747402340: Sending CONNACK to sensor_tracking_server (0, 0)
+1747402340: Received SUBSCRIBE from sensor_tracking_server
+1747402340: 	sensors/+/data (QoS 0)
+1747402340: sensor_tracking_server 0 sensors/+/data
+1747402340: Sending SUBACK to sensor_tracking_server
+1747402340: Received SUBSCRIBE from sensor_tracking_server
+1747402340: 	sensors/+/status (QoS 0)
+1747402340: sensor_tracking_server 0 sensors/+/status
+1747402340: Sending SUBACK to sensor_tracking_server
+1747402400: Received PINGREQ from sensor_tracking_server
+1747402400: Sending PINGRESP to sensor_tracking_server
+1747402460: Received PINGREQ from sensor_tracking_server
+1747402460: Sending PINGRESP to sensor_tracking_server
+1747402520: Received PINGREQ from sensor_tracking_server
+1747402520: Sending PINGRESP to sensor_tracking_server
+1747402580: Received PINGREQ from sensor_tracking_server
+1747402580: Sending PINGRESP to sensor_tracking_server
+1747402640: Received PINGREQ from sensor_tracking_server
+1747402640: Sending PINGRESP to sensor_tracking_server
+1747402700: Received PINGREQ from sensor_tracking_server
+1747402700: Sending PINGRESP to sensor_tracking_server
+1747402758: New connection from ::1:41930 on port 1883.
+1747402758: New client connected from ::1:41930 as auto-43A5851C-8228-C997-06A5-438BA179D451 (p2, c1, k60).
+1747402758: No will message specified.
+1747402758: Sending CONNACK to auto-43A5851C-8228-C997-06A5-438BA179D451 (0, 0)
+1747402758: Received PUBLISH from auto-43A5851C-8228-C997-06A5-438BA179D451 (d0, q0, r0, m0, 'sensors/sensor1/status', ... (71 bytes))
+1747402758: Sending PUBLISH to sensor_tracking_server (d0, q0, r0, m0, 'sensors/sensor1/status', ... (71 bytes))
+1747402758: Received DISCONNECT from auto-43A5851C-8228-C997-06A5-438BA179D451
+1747402758: Client auto-43A5851C-8228-C997-06A5-438BA179D451 disconnected.
+1747402760: Received PINGREQ from sensor_tracking_server
+1747402760: Sending PINGRESP to sensor_tracking_server
+1747402820: Received PINGREQ from sensor_tracking_server
+1747402820: Sending PINGRESP to sensor_tracking_server
+1747402833: New connection from ::1:60352 on port 1883.
+1747402833: New client connected from ::1:60352 as auto-3C507701-9ACB-EC04-80EB-DCC2A31F9D4B (p2, c1, k60).
+1747402833: No will message specified.
+1747402833: Sending CONNACK to auto-3C507701-9ACB-EC04-80EB-DCC2A31F9D4B (0, 0)
+1747402833: Received PUBLISH from auto-3C507701-9ACB-EC04-80EB-DCC2A31F9D4B (d0, q0, r0, m0, 'sensors/sensor1/status', ... (71 bytes))
+1747402833: Sending PUBLISH to sensor_tracking_server (d0, q0, r0, m0, 'sensors/sensor1/status', ... (71 bytes))
+1747402833: Received DISCONNECT from auto-3C507701-9ACB-EC04-80EB-DCC2A31F9D4B
+1747402833: Client auto-3C507701-9ACB-EC04-80EB-DCC2A31F9D4B disconnected.
+1747402880: Received PINGREQ from sensor_tracking_server
+1747402880: Sending PINGRESP to sensor_tracking_server
+1747402922: New connection from ::1:36156 on port 1883.
+1747402922: New client connected from ::1:36156 as auto-7EEC8593-6285-AF3A-ED48-B503AC955EA7 (p2, c1, k60).
+1747402922: No will message specified.
+1747402922: Sending CONNACK to auto-7EEC8593-6285-AF3A-ED48-B503AC955EA7 (0, 0)
+1747402922: Received PUBLISH from auto-7EEC8593-6285-AF3A-ED48-B503AC955EA7 (d0, q0, r0, m0, 'sensors/sensor1/status', ... (81 bytes))
+1747402922: Sending PUBLISH to sensor_tracking_server (d0, q0, r0, m0, 'sensors/sensor1/status', ... (81 bytes))
+1747402922: Received DISCONNECT from auto-7EEC8593-6285-AF3A-ED48-B503AC955EA7
+1747402922: Client auto-7EEC8593-6285-AF3A-ED48-B503AC955EA7 disconnected.
+1747402940: Received PINGREQ from sensor_tracking_server
+1747402940: Sending PINGRESP to sensor_tracking_server
+1747403000: Received PINGREQ from sensor_tracking_server
+1747403000: Sending PINGRESP to sensor_tracking_server
+1747403060: Received PINGREQ from sensor_tracking_server
+1747403060: Sending PINGRESP to sensor_tracking_server
+1747403120: Received PINGREQ from sensor_tracking_server
+1747403120: Sending PINGRESP to sensor_tracking_server
+1747403180: Received PINGREQ from sensor_tracking_server
+1747403180: Sending PINGRESP to sensor_tracking_server
+1747403240: Received PINGREQ from sensor_tracking_server
+1747403240: Sending PINGRESP to sensor_tracking_server
+1747403300: Received PINGREQ from sensor_tracking_server
+1747403300: Sending PINGRESP to sensor_tracking_server
+1747403361: Received PINGREQ from sensor_tracking_server
+1747403361: Sending PINGRESP to sensor_tracking_server
+1747403421: Received PINGREQ from sensor_tracking_server
+1747403421: Sending PINGRESP to sensor_tracking_server
+1747403481: Received PINGREQ from sensor_tracking_server
+1747403481: Sending PINGRESP to sensor_tracking_server
+1747403541: Received PINGREQ from sensor_tracking_server
+1747403541: Sending PINGRESP to sensor_tracking_server
+1747403601: Received PINGREQ from sensor_tracking_server
+1747403601: Sending PINGRESP to sensor_tracking_server
+1747403661: Received PINGREQ from sensor_tracking_server
+1747403661: Sending PINGRESP to sensor_tracking_server
+1747403721: Received PINGREQ from sensor_tracking_server
+1747403721: Sending PINGRESP to sensor_tracking_server
+1747403740: Client sensor_tracking_server closed its connection.
+1747403741: mosquitto version 2.0.18 terminating
+1747403741: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1747403749: mosquitto version 2.0.18 starting
+1747403749: Config loaded from /mosquitto/config/mosquitto.conf.
+1747403749: Opening ipv4 listen socket on port 1883.
+1747403749: Opening ipv6 listen socket on port 1883.
+1747403749: Opening websockets listen socket on port 9001.
+1747403749: mosquitto version 2.0.18 running
+1747403751: New connection from 172.18.0.5:40628 on port 1883.
+1747403751: New client connected from 172.18.0.5:40628 as sensor_tracking_server (p2, c1, k60).
+1747403751: No will message specified.
+1747403751: Sending CONNACK to sensor_tracking_server (0, 0)
+1747403751: Received SUBSCRIBE from sensor_tracking_server
+1747403751: 	sensors/+/data (QoS 0)
+1747403751: sensor_tracking_server 0 sensors/+/data
+1747403751: Sending SUBACK to sensor_tracking_server
+1747403751: Received SUBSCRIBE from sensor_tracking_server
+1747403751: 	sensors/+/status (QoS 0)
+1747403751: sensor_tracking_server 0 sensors/+/status
+1747403751: Sending SUBACK to sensor_tracking_server
+1747403811: Received PINGREQ from sensor_tracking_server
+1747403811: Sending PINGRESP to sensor_tracking_server
+1747403864: Client sensor_tracking_server closed its connection.
+1747403864: mosquitto version 2.0.18 terminating
+1747403864: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1747403874: mosquitto version 2.0.18 starting
+1747403874: Config loaded from /mosquitto/config/mosquitto.conf.
+1747403874: Opening ipv4 listen socket on port 1883.
+1747403874: Opening ipv6 listen socket on port 1883.
+1747403874: Opening websockets listen socket on port 9001.
+1747403874: mosquitto version 2.0.18 running
+1747403876: New connection from 172.18.0.5:60016 on port 1883.
+1747403876: New client connected from 172.18.0.5:60016 as sensor_tracking_server (p2, c1, k60).
+1747403876: No will message specified.
+1747403876: Sending CONNACK to sensor_tracking_server (0, 0)
+1747403876: Received SUBSCRIBE from sensor_tracking_server
+1747403876: 	sensors/+/data (QoS 0)
+1747403876: sensor_tracking_server 0 sensors/+/data
+1747403876: Sending SUBACK to sensor_tracking_server
+1747403876: Received SUBSCRIBE from sensor_tracking_server
+1747403876: 	sensors/+/status (QoS 0)
+1747403876: sensor_tracking_server 0 sensors/+/status
+1747403876: Sending SUBACK to sensor_tracking_server
+1747403936: Received PINGREQ from sensor_tracking_server
+1747403936: Sending PINGRESP to sensor_tracking_server
+1747403996: Received PINGREQ from sensor_tracking_server
+1747403996: Sending PINGRESP to sensor_tracking_server
+1747404056: Received PINGREQ from sensor_tracking_server
+1747404056: Sending PINGRESP to sensor_tracking_server
+1747404116: Received PINGREQ from sensor_tracking_server
+1747404116: Sending PINGRESP to sensor_tracking_server
+1747404170: Client sensor_tracking_server closed its connection.
+1747404171: mosquitto version 2.0.18 terminating
+1747404171: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1747404188: mosquitto version 2.0.18 starting
+1747404188: Config loaded from /mosquitto/config/mosquitto.conf.
+1747404188: Opening ipv4 listen socket on port 1883.
+1747404188: Opening ipv6 listen socket on port 1883.
+1747404188: Opening websockets listen socket on port 9001.
+1747404188: mosquitto version 2.0.18 running
+1747404190: New connection from 172.18.0.5:58130 on port 1883.
+1747404190: New client connected from 172.18.0.5:58130 as sensor_tracking_server (p2, c1, k60).
+1747404190: No will message specified.
+1747404190: Sending CONNACK to sensor_tracking_server (0, 0)
+1747404190: Received SUBSCRIBE from sensor_tracking_server
+1747404190: 	sensors/+/data (QoS 0)
+1747404190: sensor_tracking_server 0 sensors/+/data
+1747404190: Sending SUBACK to sensor_tracking_server
+1747404190: Received SUBSCRIBE from sensor_tracking_server
+1747404190: 	sensors/+/status (QoS 0)
+1747404190: sensor_tracking_server 0 sensors/+/status
+1747404190: Sending SUBACK to sensor_tracking_server
+1747404250: Received PINGREQ from sensor_tracking_server
+1747404250: Sending PINGRESP to sensor_tracking_server
+1747404255: Client sensor_tracking_server closed its connection.
+1747404255: mosquitto version 2.0.18 terminating
+1747404255: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1747404263: mosquitto version 2.0.18 starting
+1747404263: Config loaded from /mosquitto/config/mosquitto.conf.
+1747404263: Opening ipv4 listen socket on port 1883.
+1747404263: Opening ipv6 listen socket on port 1883.
+1747404263: Opening websockets listen socket on port 9001.
+1747404263: mosquitto version 2.0.18 running
+1747404267: New connection from 172.18.0.5:59792 on port 1883.
+1747404267: New client connected from 172.18.0.5:59792 as sensor_tracking_server (p2, c1, k60).
+1747404267: No will message specified.
+1747404267: Sending CONNACK to sensor_tracking_server (0, 0)
+1747404267: Received SUBSCRIBE from sensor_tracking_server
+1747404267: 	sensors/+/data (QoS 0)
+1747404267: sensor_tracking_server 0 sensors/+/data
+1747404267: Sending SUBACK to sensor_tracking_server
+1747404267: Received SUBSCRIBE from sensor_tracking_server
+1747404267: 	sensors/+/status (QoS 0)
+1747404267: sensor_tracking_server 0 sensors/+/status
+1747404267: Sending SUBACK to sensor_tracking_server
+1747404327: Received PINGREQ from sensor_tracking_server
+1747404327: Sending PINGRESP to sensor_tracking_server
+1747404387: Received PINGREQ from sensor_tracking_server
+1747404387: Sending PINGRESP to sensor_tracking_server
+1747404447: Received PINGREQ from sensor_tracking_server
+1747404447: Sending PINGRESP to sensor_tracking_server
+1747404496: Client sensor_tracking_server closed its connection.
+1747404497: mosquitto version 2.0.18 terminating
+1747404497: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1747404501: mosquitto version 2.0.18 starting
+1747404501: Config loaded from /mosquitto/config/mosquitto.conf.
+1747404501: Opening ipv4 listen socket on port 1883.
+1747404501: Opening ipv6 listen socket on port 1883.
+1747404501: Opening websockets listen socket on port 9001.
+1747404501: mosquitto version 2.0.18 running
+1747404503: New connection from 172.18.0.5:54712 on port 1883.
+1747404503: New client connected from 172.18.0.5:54712 as sensor_tracking_server (p2, c1, k60).
+1747404503: No will message specified.
+1747404503: Sending CONNACK to sensor_tracking_server (0, 0)
+1747404503: Received SUBSCRIBE from sensor_tracking_server
+1747404503: 	sensors/+/data (QoS 0)
+1747404503: sensor_tracking_server 0 sensors/+/data
+1747404503: Sending SUBACK to sensor_tracking_server
+1747404503: Received SUBSCRIBE from sensor_tracking_server
+1747404503: 	sensors/+/status (QoS 0)
+1747404503: sensor_tracking_server 0 sensors/+/status
+1747404503: Sending SUBACK to sensor_tracking_server
+1747404563: Received PINGREQ from sensor_tracking_server
+1747404563: Sending PINGRESP to sensor_tracking_server
+1747404623: Received PINGREQ from sensor_tracking_server
+1747404623: Sending PINGRESP to sensor_tracking_server
+1747404683: Received PINGREQ from sensor_tracking_server
+1747404683: Sending PINGRESP to sensor_tracking_server

@@ -41,6 +41,7 @@ export const writeSensorData = async (sensorData: MQTTSensorData): Promise<void>
   try {
     if (!writeApi) {
       log.warn('InfluxDB istemcisi başlatılmadı. Veri yazılamadı.');
+      console.warn('InfluxDB istemcisi başlatılmadı. writeApi mevcut değil.');
       return;
     }
     
@@ -56,17 +57,27 @@ export const writeSensorData = async (sensorData: MQTTSensorData): Promise<void>
       }
     });
     
+    console.log('InfluxDB\'ye yazılacak veri:', sensorData);
+    
     // InfluxDB'ye yaz
     writeApi.writePoint(point);
     await writeApi.flush();
+    
+    console.log('Veri başarıyla InfluxDB\'ye yazıldı:', {
+      sensor_id: sensorData.sensor_id,
+      timestamp: sensorData.timestamp
+    });
     
     log.info('Veri başarıyla InfluxDB\'ye yazıldı', {
       sensor_id: sensorData.sensor_id,
       timestamp: sensorData.timestamp
     });
   } catch (error) {
+    console.error('InfluxDB\'ye veri yazılırken hata:', error);
     log.error('InfluxDB\'ye veri yazılırken hata:', { 
-      error: error instanceof Error ? error.message : 'Bilinmeyen hata' 
+      error: error instanceof Error ? error.message : 'Bilinmeyen hata',
+      stack: error instanceof Error ? error.stack : '',
+      sensor_data: JSON.stringify(sensorData)
     });
     throw error;
   }

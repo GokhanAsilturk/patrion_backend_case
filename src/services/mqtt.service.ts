@@ -11,7 +11,7 @@ let client: MqttClient;
 // MQTT İstemcisini başlat
 export const initMqttClient = (): void => {
   try {
-    const broker = config.mqtt.broker || 'mqtt://localhost:1883';
+    const broker = config.mqtt.broker || 'mqtt://mqtt:1883';
     
     client = mqtt.connect(broker, {
       clientId: config.mqtt.clientId,
@@ -186,4 +186,19 @@ export const closeMqttClient = (): void => {
     client.end();
     console.log('MQTT bağlantısı kapatıldı');
   }
-}; 
+};
+
+function onStatusMessage(topic: string, message: Buffer) {
+  try {
+    const rawData = message.toString();
+    console.log(`MQTT Durum Mesajı Alındı (${topic}):`, rawData);
+    
+    // JSON parse
+    const data = JSON.parse(rawData);
+    console.log('MQTT Mesaj içeriği (parse edilmiş):', data);
+    
+    // ... existing code ...
+  } catch (error) {
+    // ... existing code ...
+  }
+} 

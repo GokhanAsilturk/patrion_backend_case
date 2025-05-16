@@ -95,7 +95,12 @@
 - [x] InfluxDB servisindeki tip hatalarının düzeltilmesi
 - [x] Sensör API rotalarının eklenmesi ve endpoint'lerin yapılandırılması
 
+### 6. Test ve Geliştirme Araçları ✅
+- [x] MQTT Test Veri Gönderme Aracı oluşturulması
+- [x] InfluxDB entegrasyonu sorun giderme
+- [x] Docker ortamında test ve geliştirme kılavuzu
+
 ## Tamamlanma Durumu
-Toplam 54 adımdan 51 adım tamamlandı (94% tamamlanma oranı). 🎉
+Toplam 57 adımdan 54 adım tamamlandı (95% tamamlanma oranı). 🎉
 
 Not: "Akıllı Sensör Takip Sistemi" projesi belirlenen hedefler doğrultusunda çoğu adımı tamamlamıştır. İlerleyen fazda MQTT broker TLS/SSL koruması ve CI/CD pipeline kurulumu ele alınabilir.
