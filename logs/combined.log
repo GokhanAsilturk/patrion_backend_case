@@ -329,3 +329,26 @@
 {"level":"info","message":"HTTP İsteği","metadata":{"ip":"::1","method":"GET","responseTime":"8ms","status":304,"url":"/swagger-ui-standalone-preset.js","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 OPR/118.0.0.0 (Edition std-2)"},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:11"}
 {"level":"info","message":"HTTP İsteği","metadata":{"ip":"::1","method":"GET","responseTime":"0ms","status":304,"url":"/favicon-32x32.png","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 OPR/118.0.0.0 (Edition std-2)"},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:12"}
 {"level":"info","message":"Sunucu http://localhost:3000 adresinde çalışıyor","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Şirket tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Kullanıcı tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Sensör tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Sensör veri tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Kullanıcı log tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Veritabanı tabloları başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Şirket zaten mevcut","metadata":{"companyId":1},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Kullanıcı zaten mevcut","metadata":{"email":"admin@system.com"},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Seed verileri başarıyla eklendi","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"InfluxDB istemcisi başlatıldı","metadata":{"bucket":"sensor_data","org":"sensor_org","url":"http://localhost:8086"},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Veritabanı bağlantısı başarılı","metadata":{"timestamp":{"now":"2025-05-16T14:48:45.440Z"}},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:45"}
+{"level":"info","message":"Sunucu http://localhost:3000 adresinde çalışıyor","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Veritabanı bağlantısı başarılı","metadata":{"timestamp":{"now":"2025-05-16T14:48:57.712Z"}},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Şirket tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Kullanıcı tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Sensör tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Sensör veri tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Kullanıcı log tablosu başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Veritabanı tabloları başarıyla oluşturuldu","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Şirket zaten mevcut","metadata":{"companyId":1},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Kullanıcı zaten mevcut","metadata":{"email":"admin@system.com"},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"Seed verileri başarıyla eklendi","metadata":{},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
+{"level":"info","message":"InfluxDB istemcisi başlatıldı","metadata":{"bucket":"sensor_data","org":"sensor_org","url":"http://localhost:8086"},"service":"patrion-sensor-service","timestamp":"2025-05-16 17:48:57"}
