@@ -8,7 +8,6 @@ import { LogAction } from '../types/log';
 
 let client: MqttClient;
 
-// MQTT İstemcisini başlat
 export const initMqttClient = (): void => {
   try {
     const broker = config.mqtt.broker || 'mqtt://mqtt:1883';
@@ -24,10 +23,9 @@ export const initMqttClient = (): void => {
     client.on('connect', () => {
       console.log('MQTT Broker\'a bağlandı');
       
-      // Sensör konularına abone ol
       const topics = [
-        'sensors/+/data',  // Tüm sensörlerin veri yayını
-        'sensors/+/status' // Tüm sensörlerin durum yayını
+        'sensors/+/data',
+        'sensors/+/status'
       ];
       
       topics.forEach(topic => {
@@ -45,53 +43,42 @@ export const initMqttClient = (): void => {
       try {
         console.log(`Konu ${topic} üzerinden mesaj alındı:`, message.toString());
         
-        // Sensör verisi için konu filtreleme
         if (topic.match(/^sensors\/[\w-]+\/data$/)) {
-          // JSON parse kontrolü
           let sensorData: MQTTSensorData;
           try {
             sensorData = JSON.parse(message.toString());
           } catch (parseError) {
-            // JSON parse hatası - hatalı veri formatı
             logInvalidSensorData(topic, message.toString(), 'JSON parse hatası', parseError);
             return;
           }
           
-          // Gerekli alanların kontrolü
           if (!isValidSensorData(sensorData)) {
             logInvalidSensorData(topic, message.toString(), 'Geçersiz sensör veri formatı');
             return;
           }
           
-          // Sensör verisini PostgreSQL'e kaydet
           await saveSensorData(sensorData);
           
-          // Sensör verisini InfluxDB'ye de kaydet
           try {
             await writeSensorData(sensorData);
           } catch (influxError) {
             console.error('InfluxDB\'ye veri yazılırken hata:', 
               influxError instanceof Error ? influxError.message : 'Bilinmeyen hata');
-            // InfluxDB hatası uygulama akışını durdurmamalı
           }
         }
         
-        // Sensör durumu için konu filtreleme
         if (topic.match(/^sensors\/[\w-]+\/status$/)) {
           let statusData;
           try {
             statusData = JSON.parse(message.toString());
           } catch (parseError) {
-            // JSON parse hatası - hatalı durum verisi
             logInvalidSensorData(topic, message.toString(), 'JSON parse hatası (durum verisi)', parseError);
             return;
           }
           console.log('Sensör durum bilgisi:', statusData);
-          // Durum bilgisini işle (gerekirse)
         }
       } catch (error) {
         console.error('MQTT mesajı işlenirken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
-        // Genel hata durumunu logla
         logInvalidSensorData('Genel MQTT Hatası', message.toString(), 'İşleme hatası', error);
       }
     });
@@ -112,11 +99,7 @@ export const initMqttClient = (): void => {
   }
 };
 
-/**
- * Sensör verisinin geçerli olup olmadığını kontrol eder
- */
 const isValidSensorData = (data: any): boolean => {
-  // Gerekli alanların kontrolü
   if (!data.sensor_id || typeof data.sensor_id !== 'string') {
     return false;
   }
@@ -125,7 +108,6 @@ const isValidSensorData = (data: any): boolean => {
     return false;
   }
   
-  // Diğer alan tür kontrolleri
   if (data.temperature !== undefined && typeof data.temperature !== 'number') {
     return false;
   }
@@ -137,12 +119,8 @@ const isValidSensorData = (data: any): boolean => {
   return true;
 };
 
-/**
- * Hatalı sensör verilerini loglar
- */
 const logInvalidSensorData = async (topic: string, rawData: string, reason: string, error?: any): Promise<void> => {
   try {
-    // Hata detayını oluştur
     const errorDetails = {
       topic,
       rawData,
@@ -152,20 +130,17 @@ const logInvalidSensorData = async (topic: string, rawData: string, reason: stri
     
     console.error(`Hatalı sensör verisi: ${reason}`, errorDetails);
     
-    // user_logs tablosuna kaydet (system userı olarak)
     await createUserLog({
-      user_id: 1, // System user ID'si (veritabanında system kullanıcısı oluşturulmalı)
+      user_id: 1,
       action: LogAction.INVALID_SENSOR_DATA,
       details: errorDetails,
       ip_address: 'system'
     });
   } catch (logError) {
-    // Log kaydı oluşturulurken hata olursa sadece konsola yaz
     console.error('Hatalı veri loglanırken hata:', logError instanceof Error ? logError.message : 'Bilinmeyen hata');
   }
 };
 
-// Bir konuya mesaj yayınla
 export const publishMessage = (topic: string, message: any): void => {
   if (!client || !client.connected) {
     console.error('MQTT istemcisi bağlı değil. Mesaj yayınlanamıyor.');
@@ -180,7 +155,6 @@ export const publishMessage = (topic: string, message: any): void => {
   }
 };
 
-// MQTT istemcisini kapat
 export const closeMqttClient = (): void => {
   if (client) {
     client.end();
@@ -193,12 +167,8 @@ function onStatusMessage(topic: string, message: Buffer) {
     const rawData = message.toString();
     console.log(`MQTT Durum Mesajı Alındı (${topic}):`, rawData);
     
-    // JSON parse
     const data = JSON.parse(rawData);
     console.log('MQTT Mesaj içeriği (parse edilmiş):', data);
-    
-    // ... existing code ...
   } catch (error) {
-    // ... existing code ...
   }
-} 
+}

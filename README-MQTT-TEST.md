@@ -60,7 +60,6 @@ JSON dosyası tekil bir sensör verisi veya bir dizi sensör verisi içerebilir:
 Varsayılan olarak araç `mqtt://localhost:1883` adresine bağlanır. Eğer MQTT broker farklı bir adreste çalışıyorsa, `send-test-data.js` dosyasında şu değişikliği yapın:
 
 ```javascript
-// MQTT Bağlantı Bilgileri
 const MQTT_BROKER = 'mqtt://sizin-mqtt-adresiniz:port';
 ```
 
@@ -69,7 +68,6 @@ const MQTT_BROKER = 'mqtt://sizin-mqtt-adresiniz:port';
 Docker ortamında çalışıyorsanız, Docker ağı içindeki MQTT servis adını kullanmanız gerekir:
 
 ```javascript
-// MQTT Bağlantı Bilgileri
 const MQTT_BROKER = 'mqtt://mqtt:1883';
 ```
 

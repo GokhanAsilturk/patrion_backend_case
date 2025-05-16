@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
 
 const config = {
@@ -29,10 +28,10 @@ const config = {
   
   influxdb: {
     url: process.env.INFLUX_URL || 'http://localhost:8086',
-    token: process.env.INFLUX_TOKEN || 'influxdb_secret_token_123456789',
+    token: process.env.INFLUX_TOKEN || 'mCjO945P8QqKpYoLTcMpqovvVRjIzMWNH52u6PgRR9yRYrMXs5YGAPgTJ-_NfuLC9wf6ADVLBKIUacw7UTxVHw==',
     org: process.env.INFLUX_ORG || 'sensor_org',
     bucket: process.env.INFLUX_BUCKET || 'sensor_data'
   }
 };
 
-export default config; 
+export default config;

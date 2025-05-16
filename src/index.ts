@@ -1,4 +1,4 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import http from 'http';
@@ -17,6 +17,16 @@ import swaggerSpec from './utils/swagger';
 import seedDatabase from './seeds/seed';
 import { standardRateLimiter, strictRateLimiter } from './middlewares/rate-limiter.middleware';
 import { initInfluxDB } from './services/influxdb.service';
+// Hata yakalama middleware'lerini içe aktar
+import { 
+  notFoundHandler, 
+  validationErrorHandler, 
+  postgresErrorHandler, 
+  jwtErrorHandler, 
+  unexpectedErrorHandler, 
+  globalErrorHandler 
+} from './middlewares/error.middleware';
+
 // Environment variables
 dotenv.config();
 
@@ -92,31 +102,18 @@ app.get('/', (req: Request, res: Response) => {
   res.redirect('/api-docs');
 });
 
-// 404 handler
-app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    status: 'error',
-    message: 'Sayfa bulunamadı'
-  });
-});
+// Hata yakalama middleware'leri
+// 404 handler - rotalardan sonra eklenir
+app.use(notFoundHandler);
 
-// Global error handler
-app.use((err: any, req: Request, res: Response, next: any) => {
-  log.error('Uygulama hatası', { 
-    error: err.message || 'Bilinmeyen hata', 
-    stack: err.stack,
-    path: req.path, 
-    method: req.method 
-  });
-  
-  const statusCode = err.statusCode || 500;
-  const errorMessage = err.message || 'Sunucu hatası';
-  
-  res.status(statusCode).json({
-    status: 'error',
-    message: errorMessage
-  });
-});
+// Express hata middleware'leri 4 parametre alır (err, req, res, next)
+app.use(validationErrorHandler as express.ErrorRequestHandler);
+app.use(postgresErrorHandler as express.ErrorRequestHandler);
+app.use(jwtErrorHandler as express.ErrorRequestHandler);
+app.use(unexpectedErrorHandler as express.ErrorRequestHandler);
+
+// Global error handler - en son çalışacak
+app.use(globalErrorHandler as express.ErrorRequestHandler);
 
 // HTTP server
 const server = http.createServer(app);

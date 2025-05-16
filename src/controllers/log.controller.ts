@@ -5,6 +5,9 @@ import { UserRole } from '../types/user';
 import pool from '../config/database';
 import { AuthRequest } from '../types/auth';
 import { parseLocalDate } from '../utils/date-utils';
+// Hata sınıflarını içe aktar
+import { AppError, ValidationError, AuthorizationError, DatabaseError } from '../utils/error';
+import { ErrorCode } from '../types/error';
 
 /**
  * @swagger
@@ -136,7 +139,7 @@ import { parseLocalDate } from '../utils/date-utils';
  *       500:
  *         description: Sunucu hatası
  */
-export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getUserLogs = async (req: AuthRequest, res: Response, next: Function): Promise<void> => {
   try {
     // Eğer userId params'tan gelmiyorsa, oturum açmış kullanıcının id'sini kullan
     const userId = parseInt(req.params.userId, 10) || req.user?.id || 0;
@@ -152,11 +155,7 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
     
     // Geçersiz tarih formatı kontrolü
     if ((startDateStr && !startDate) || (endDateStr && !endDate)) {
-      res.status(400).json({
-        status: 'error',
-        message: 'Geçersiz tarih formatı. Lütfen GG/AA/YYYY formatında tarih girin (örn: 16/05/2025)'
-      });
-      return;
+      throw new ValidationError('Geçersiz tarih formatı. Lütfen GG/AA/YYYY formatında tarih girin (örn: 16/05/2025)');
     }
     
     // Erişim kontrolü
@@ -166,15 +165,11 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
         // Bu kısım, şirket kontrolü gerektiren bir sorgu eklenecek
         // Şirket yöneticisi, şirketindeki kullanıcıların loglarını görebilmeli
       } else {
-        res.status(403).json({
-          status: 'error',
-          message: 'Bu kullanıcının log kayıtlarına erişim yetkiniz bulunmamaktadır'
-        });
-        return;
+        throw new AuthorizationError('Bu kullanıcının log kayıtlarına erişim yetkiniz bulunmamaktadır');
       }
     }
     
-    // Log kaydı oluştur
+  
     await createUserLog({
       user_id: req.user?.id || 0,
       action: LogAction.VIEWED_LOGS,
@@ -220,7 +215,9 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
     queryParams.push(limit, offset);
     
     // Sorguyu çalıştır
-    const { rows } = await pool.query(query, queryParams);
+    const { rows } = await pool.query(query, queryParams).catch(err => {
+      throw new DatabaseError(`Veritabanı sorgulama hatası: ${err.message}`, ErrorCode.DB_QUERY_ERROR, { query });
+    });
     
     // Toplam kayıt sayısını al
     const countQuery = `
@@ -238,7 +235,10 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
       countParams.push(nextDay.toISOString());
     }
     
-    const countResult = await pool.query(countQuery, countParams);
+    const countResult = await pool.query(countQuery, countParams).catch(err => {
+      throw new DatabaseError(`Toplam kayıt sayısı alınırken hata: ${err.message}`, ErrorCode.DB_QUERY_ERROR);
+    });
+    
     const totalCount = parseInt(countResult.rows[0].count, 10);
     
     res.json({
@@ -250,10 +250,8 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
       data: { logs: rows }
     });
   } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Log kayıtları alınırken hata oluştu'
-    });
+    // Hata middleware'inin işleyebilmesi için hatayı next fonksiyonuna iletiyoruz
+    next(error);
   }
 };
 

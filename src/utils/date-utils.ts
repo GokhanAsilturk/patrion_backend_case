@@ -10,17 +10,15 @@
 export const parseLocalDate = (dateString: string): Date | null => {
   if (!dateString) return null;
   
-  // GG/AA/YYYY formatını kontrol etmek için regex
   const regex = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/;
   const match = dateString.match(regex);
   
   if (!match) return null;
   
   const day = parseInt(match[1], 10);
-  const month = parseInt(match[2], 10) - 1; // JavaScript'te aylar 0'dan başlar
+  const month = parseInt(match[2], 10) - 1;
   const year = parseInt(match[3], 10);
   
-  // Geçerli bir tarih mi kontrol et
   const date = new Date(year, month, day);
   
   if (
@@ -28,7 +26,7 @@ export const parseLocalDate = (dateString: string): Date | null => {
     date.getMonth() !== month ||
     date.getDate() !== day
   ) {
-    return null; // Geçersiz tarih
+    return null; 
   }
   
   return date;
@@ -41,7 +39,7 @@ export const parseLocalDate = (dateString: string): Date | null => {
  */
 export const formatLocalDate = (date: Date): string => {
   const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // JavaScript'te aylar 0'dan başlar
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
   const year = date.getFullYear();
   
   return `${day}/${month}/${year}`;
@@ -54,7 +52,7 @@ export const formatLocalDate = (date: Date): string => {
  * @returns Gün farkı
  */
 export const getDaysBetween = (startDate: Date, endDate: Date): number => {
-  const oneDay = 24 * 60 * 60 * 1000; // saat*dakika*saniye*milisaniye
+  const oneDay = 24 * 60 * 60 * 1000;
   const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
   return Math.round(diffTime / oneDay);
 }; 

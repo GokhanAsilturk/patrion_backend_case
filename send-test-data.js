@@ -2,7 +2,6 @@ const mqtt = require('mqtt');
 const fs = require('fs');
 const readline = require('readline');
 
-// MQTT Bağlantı Bilgileri
 const MQTT_BROKER = 'mqtt://localhost:1883';
 const DEFAULT_TOPIC = 'sensors/sensor1/status';
 
@@ -14,10 +13,8 @@ const DEFAULT_DATA = {
   humidity: 55.2
 };
 
-// Bağlantı kurma
 const client = mqtt.connect(MQTT_BROKER);
 
-// Kullanıcı arayüzü
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
@@ -131,10 +128,9 @@ function sendMultipleData() {
     let sent = 0;
     
     for (let i = 0; i < actualCount; i++) {
-      // Rastgele değerlerle veri oluştur
       const data = {
         sensor_id: 'sensor1',
-        timestamp: Math.floor(Date.now() / 1000) - (actualCount - i) * 60, // Her veri 1 dakika aralıkla
+        timestamp: Math.floor(Date.now() / 1000) - (actualCount - i) * 60, 
         temperature: (20 + Math.random() * 10).toFixed(1),
         humidity: (40 + Math.random() * 20).toFixed(1)
       };
@@ -171,12 +167,10 @@ function sendFromJsonFile() {
       }
       
       if (Array.isArray(jsonData)) {
-        // Çoklu veri gönderme
         let sent = 0;
         const total = jsonData.length;
         
         jsonData.forEach((data, index) => {
-          // Eğer timestamp yoksa ekle
           if (!data.timestamp) {
             data.timestamp = Math.floor(Date.now() / 1000) - (total - index) * 60;
           }
@@ -192,7 +186,6 @@ function sendFromJsonFile() {
           });
         });
       } else {
-        // Tek veri gönderme
         if (!jsonData.timestamp) {
           jsonData.timestamp = Math.floor(Date.now() / 1000);
         }
@@ -215,7 +208,6 @@ function sendFromJsonFile() {
   });
 }
 
-// Bağlantı olayları
 client.on('connect', () => {
   console.log('MQTT broker\'a bağlanıldı.');
   displayMenu();
@@ -227,7 +219,6 @@ client.on('error', (err) => {
   process.exit(1);
 });
 
-// Temiz çıkış
 process.on('SIGINT', () => {
   console.log('\nProgram sonlandırılıyor...');
   client.end();

@@ -4,10 +4,8 @@ import { MQTTSensorData, SensorData, SensorDataInput } from '../types/sensor';
 import { getSensorBySensorId } from '../models/sensor.model';
 import { io } from '../socket';
 
-// MQTT'den gelen sensör verisini işle ve kaydet
 export const saveSensorData = async (data: MQTTSensorData): Promise<SensorData | null> => {
   try {
-    // Sensör ID'nin veritabanında olup olmadığını kontrol et
     const sensor = await getSensorBySensorId(data.sensor_id);
     
     if (!sensor) {
@@ -15,19 +13,16 @@ export const saveSensorData = async (data: MQTTSensorData): Promise<SensorData |
       return null;
     }
     
-    // Veriyi standardize et
     const sensorData: SensorDataInput = {
       sensor_id: data.sensor_id,
-      timestamp: new Date(data.timestamp * 1000), // Unix timestamp'i Date'e çevir
+      timestamp: new Date(data.timestamp * 1000),
       temperature: data.temperature,
       humidity: data.humidity,
-      raw_data: data // Tüm ham veriyi sakla
+      raw_data: data
     };
     
-    // Veriyi veritabanına kaydet
     const savedData = await insertSensorData(sensorData);
     
-    // Gerçek zamanlı veri yayını yap
     io?.emit(`sensor/${data.sensor_id}/data`, savedData);
     
     return savedData;
@@ -37,7 +32,6 @@ export const saveSensorData = async (data: MQTTSensorData): Promise<SensorData |
   }
 };
 
-// Sensör verisini veritabanına kaydet
 export const insertSensorData = async (data: SensorDataInput): Promise<SensorData> => {
   const { sensor_id, timestamp, temperature, humidity, pressure, raw_data } = data;
   
@@ -64,7 +58,6 @@ export const insertSensorData = async (data: SensorDataInput): Promise<SensorDat
   }
 };
 
-// Bir sensörün en son verisini getir
 export const getLatestSensorData = async (sensor_id: string): Promise<SensorData | null> => {
   const query = `
     SELECT id, sensor_id, timestamp, temperature, humidity, pressure, raw_data, created_at as "createdAt"
@@ -83,7 +76,6 @@ export const getLatestSensorData = async (sensor_id: string): Promise<SensorData
   }
 };
 
-// Belirli bir zaman aralığındaki sensör verilerini getir
 export const getSensorDataByTimeRange = async (
   sensor_id: string,
   start: Date,
@@ -103,4 +95,4 @@ export const getSensorDataByTimeRange = async (
     console.error('Zaman aralığındaki sensör verileri alınırken hata:', error instanceof Error ? error.message : 'Bilinmeyen hata');
     throw error;
   }
-}; 
+};

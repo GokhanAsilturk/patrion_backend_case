@@ -2,15 +2,10 @@ import pool from '../config/database';
 import { log } from './logger';
 import dotenv from 'dotenv';
 
-// Environment variables
 dotenv.config();
 
-/**
- * Tüm veritabanı tablolarını siler ve yeniden oluşturur
- */
 async function resetDatabase() {
   try {
-    // Tüm tabloları kaldır (ters sırada)
     console.log('Mevcut tabloları kaldırma işlemi başlıyor...');
     
     await pool.query(`
@@ -35,5 +30,4 @@ async function resetDatabase() {
   }
 }
 
-// Betiği çalıştır
-resetDatabase(); 
+resetDatabase();

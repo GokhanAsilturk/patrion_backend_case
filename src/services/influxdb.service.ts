@@ -6,9 +6,6 @@ import { log } from '../utils/logger';
 let client: InfluxDB;
 let writeApi: WriteApi;
 
-/**
- * InfluxDB istemcisini başlatır
- */
 export const initInfluxDB = (): void => {
   try {
     const { url, token, org, bucket } = config.influxdb;
@@ -33,10 +30,6 @@ export const initInfluxDB = (): void => {
   }
 };
 
-/**
- * Sensör verisini InfluxDB'ye yazar
- * @param sensorData Sensörden gelen veri
- */
 export const writeSensorData = async (sensorData: MQTTSensorData): Promise<void> => {
   try {
     if (!writeApi) {
@@ -45,12 +38,10 @@ export const writeSensorData = async (sensorData: MQTTSensorData): Promise<void>
       return;
     }
     
-    // InfluxDB için point (nokta) oluşturma
     const point = new Point('sensor_data')
       .tag('sensor_id', sensorData.sensor_id)
-      .timestamp(new Date(sensorData.timestamp * 1000)); // Unix timestamp'i JavaScript Date objesine çevir
+      .timestamp(new Date(sensorData.timestamp * 1000));
     
-    // Sensör verilerindeki tüm sayısal değerleri ekle
     Object.entries(sensorData).forEach(([key, value]) => {
       if (key !== 'sensor_id' && key !== 'timestamp' && typeof value === 'number') {
         point.floatField(key, value);
@@ -59,7 +50,6 @@ export const writeSensorData = async (sensorData: MQTTSensorData): Promise<void>
     
     console.log('InfluxDB\'ye yazılacak veri:', sensorData);
     
-    // InfluxDB'ye yaz
     writeApi.writePoint(point);
     await writeApi.flush();
     
@@ -83,12 +73,6 @@ export const writeSensorData = async (sensorData: MQTTSensorData): Promise<void>
   }
 };
 
-/**
- * Bir sensöre ait belirli zaman aralığındaki verileri sorgular
- * @param sensorId Sensör ID
- * @param start Başlangıç zamanı (Unix timestamp)
- * @param end Bitiş zamanı (Unix timestamp)
- */
 export const querySensorData = async (sensorId: string, start: number, end: number): Promise<any[]> => {
   try {
     if (!client) {
@@ -99,7 +83,6 @@ export const querySensorData = async (sensorId: string, start: number, end: numb
     const { org } = config.influxdb;
     const queryApi = client.getQueryApi(org);
     
-    // Flux sorgu dili
     const query = `
       from(bucket: "${config.influxdb.bucket}")
         |> range(start: ${new Date(start * 1000).toISOString()}, stop: ${new Date(end * 1000).toISOString()})
@@ -107,13 +90,12 @@ export const querySensorData = async (sensorId: string, start: number, end: numb
         |> filter(fn: (r) => r.sensor_id == "${sensorId}")
     `;
     
-    // Sorguyu çalıştır
     const result: any[] = [];
     const rows = await queryApi.collectRows(query);
     
     rows.forEach((row: any) => {
       result.push({
-        time: new Date(row._time).getTime() / 1000, // JavaScript timestamp'i Unix timestamp'e çevir
+        time: new Date(row._time).getTime() / 1000,
         field: row._field,
         value: row._value,
         sensor_id: row.sensor_id
@@ -129,14 +111,6 @@ export const querySensorData = async (sensorId: string, start: number, end: numb
   }
 };
 
-/**
- * İstatistiksel analiz için sensör verilerini sorgular (örn. ortalama, min, max)
- * @param sensorId Sensör ID
- * @param field İstatistik hesaplanacak alan (örn. "temperature", "humidity")
- * @param aggregateWindow Gruplama penceresi (örn. "1h" = 1 saat)
- * @param start Başlangıç zamanı (Unix timestamp)
- * @param end Bitiş zamanı (Unix timestamp) 
- */
 export const queryAggregatedData = async (
   sensorId: string,
   field: string,
@@ -153,7 +127,6 @@ export const queryAggregatedData = async (
     const { org } = config.influxdb;
     const queryApi = client.getQueryApi(org);
     
-    // Zaman pencerelerine bölerek istatistiksel analiz yapan Flux sorgusu
     const query = `
       from(bucket: "${config.influxdb.bucket}")
         |> range(start: ${new Date(start * 1000).toISOString()}, stop: ${new Date(end * 1000).toISOString()})
@@ -164,7 +137,6 @@ export const queryAggregatedData = async (
         |> yield(name: "mean")
     `;
     
-    // Sorguyu çalıştır
     const result: any[] = [];
     const rows = await queryApi.collectRows(query);
     
@@ -184,4 +156,4 @@ export const queryAggregatedData = async (
     });
     throw error;
   }
-}; 
+};

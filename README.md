@@ -121,7 +121,7 @@ Gerçek zamanlı sensör verilerini istemcilere iletmek için Socket.IO kullanı
 ```javascript
 const socket = io('http://localhost:3000', {
   auth: {
-    token: 'jwt_token' // Kullanıcı JWT token'ı
+    token: 'jwt_token'
   }
 });
 ```
@@ -129,17 +129,14 @@ const socket = io('http://localhost:3000', {
 ### Odalara Katılma
 
 ```javascript
-// Belirli bir şirketin tüm sensörlerini izleme
 socket.emit('join_company', companyId);
 
-// Belirli bir sensörü izleme
 socket.emit('join_sensor', sensorId);
 ```
 
 ### Veri Dinleme
 
 ```javascript
-// Belirli bir sensörden gelen verileri dinleme
 socket.on(`sensor/${sensorId}/data`, (data) => {
   console.log('Yeni sensör verisi:', data);
 });

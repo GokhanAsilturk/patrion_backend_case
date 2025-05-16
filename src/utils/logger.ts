@@ -2,13 +2,11 @@ import winston from 'winston';
 import path from 'path';
 import fs from 'fs';
 
-// Log dosyaları için dizin oluştur
 const logDir = 'logs';
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
-// Log formatını oluştur
 const logFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
@@ -16,33 +14,29 @@ const logFormat = winston.format.combine(
   winston.format.json()
 );
 
-// Winston logger oluştur
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
   format: logFormat,
   defaultMeta: { service: 'patrion-sensor-service' },
   transports: [
-    // Hata seviyesindeki loglar için ayrı bir dosya
     new winston.transports.File({ 
       filename: path.join(logDir, 'error.log'), 
       level: 'error',
-      maxsize: 5242880, // 5MB
+      maxsize: 5242880,
       maxFiles: 5,
     }),
-    // Tüm loglar için
     new winston.transports.File({ 
       filename: path.join(logDir, 'combined.log'),
-      maxsize: 5242880, // 5MB
+      maxsize: 5242880,
       maxFiles: 5,
     }),
   ],
 });
 
-// Exceptions ve rejections için handler'lar ekle
 logger.exceptions.handle(
   new winston.transports.File({ 
     filename: path.join(logDir, 'exceptions.log'),
-    maxsize: 5242880, // 5MB
+    maxsize: 5242880,
     maxFiles: 5,
   })
 );
@@ -50,12 +44,11 @@ logger.exceptions.handle(
 logger.rejections.handle(
   new winston.transports.File({ 
     filename: path.join(logDir, 'rejections.log'),
-    maxsize: 5242880, // 5MB
+    maxsize: 5242880,
     maxFiles: 5,
   })
 );
 
-// Development ortamında konsola da log yaz
 if (process.env.NODE_ENV !== 'production') {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
@@ -65,9 +58,6 @@ if (process.env.NODE_ENV !== 'production') {
   }));
 }
 
-/**
- * Uygulama için standart log fonksiyonları
- */
 export const log = {
   error: (message: string, meta: Record<string, any> = {}) => {
     logger.error(message, { metadata: meta });
@@ -85,7 +75,6 @@ export const log = {
     logger.debug(message, { metadata: meta });
   },
   
-  // HTTP istekleri için özel log fonksiyonu
   http: (req: any, res: any, responseTime: number) => {
     const logLevel = res.statusCode >= 400 ? 'error' : 'info';
     logger[logLevel]('HTTP İsteği', {
@@ -101,7 +90,6 @@ export const log = {
     });
   },
   
-  // Veritabanı sorguları için özel log fonksiyonu
   db: (query: string, params: any[], duration: number) => {
     logger.debug('Veritabanı Sorgusu', {
       metadata: {
@@ -112,7 +100,6 @@ export const log = {
     });
   },
   
-  // Sensör verisi için özel log fonksiyonu
   sensor: (sensorId: string, data: any) => {
     logger.info('Sensör Verisi', {
       metadata: {
@@ -123,5 +110,4 @@ export const log = {
   }
 };
 
-// Winston logger'ı da dışa aktar (gerektiğinde doğrudan erişim için)
-export default logger; 
+export default logger;

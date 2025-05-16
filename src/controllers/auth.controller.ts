@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
 import { AuthRequest } from '../types/auth';
+import { ValidationError, DatabaseError, AuthenticationError } from '../utils/error';
+import { ErrorCode } from '../types/error';
 
 /**
  * @swagger
@@ -64,9 +66,14 @@ import { AuthRequest } from '../types/auth';
  *       409:
  *         description: Kullanıcı adı veya email zaten kullanımda
  */
-export const register = async (req: AuthRequest, res: Response): Promise<void> => {
+export const register = async (req: AuthRequest, res: Response, next: Function): Promise<void> => {
   try {
     const userData = req.body;
+    
+    if (!userData.email || !userData.password || !userData.username) {
+      throw new ValidationError('Email, şifre ve kullanıcı adı zorunludur');
+    }
+    
     const newUser = await authService.register(userData);
     
     res.status(201).json({
@@ -75,21 +82,11 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
       data: { user: newUser }
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Kayıt işlemi sırasında bir hata oluştu';
-    
-    // 409 (Conflict) durumu için kontrol
-    if (errorMessage.includes('zaten kayıtlı')) {
-      res.status(409).json({
-        status: 'error',
-        message: errorMessage
-      });
-      return;
+    if (error instanceof Error && error.message.includes('zaten kayıtlı')) {
+      return next(new DatabaseError(error.message, ErrorCode.DUPLICATE_ENTRY));
     }
     
-    res.status(400).json({
-      status: 'error',
-      message: errorMessage
-    });
+    next(error);
   }
 };
 
@@ -143,9 +140,14 @@ export const register = async (req: AuthRequest, res: Response): Promise<void> =
  *       401:
  *         description: Geçersiz kimlik bilgileri
  */
-export const login = async (req: AuthRequest, res: Response): Promise<void> => {
+export const login = async (req: AuthRequest, res: Response, next: Function): Promise<void> => {
   try {
     const credentials = req.body;
+    
+    if (!credentials.email || !credentials.password) {
+      throw new ValidationError('Email ve şifre zorunludur');
+    }
+    
     const user = await authService.login(credentials);
     
     res.status(200).json({
@@ -154,10 +156,10 @@ export const login = async (req: AuthRequest, res: Response): Promise<void> => {
       data: { user }
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Giriş yapılamadı';
-    res.status(401).json({
-      status: 'error',
-      message: errorMessage
-    });
+    if (error instanceof Error) {
+      return next(new AuthenticationError(error.message, ErrorCode.INVALID_CREDENTIALS));
+    }
+    
+    next(error);
   }
 };
