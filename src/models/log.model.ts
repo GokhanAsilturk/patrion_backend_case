@@ -27,11 +27,11 @@ export const createUserLogsTable = async (): Promise<void> => {
 };
 
 export const createUserLog = async (logData: UserLogInput): Promise<UserLog> => {
-  const { user_id, action, details = null, ip_address = null, timestamp = new Date(), user_agent = null } = logData;
+  const { user_id, action, details = null, ip_address = null, timestamp = new Date() } = logData;
   const query = `
-    INSERT INTO user_logs (user_id, action, details, ip_address, timestamp, user_agent)
-    VALUES ($1, $2, $3, $4, $5, $6)
-    RETURNING id, user_id, action, details, ip_address, timestamp, user_agent, created_at as "createdAt";
+    INSERT INTO user_logs (user_id, action, details, ip_address, timestamp)
+    VALUES ($1, $2, $3, $4, $5)
+    RETURNING id, user_id, action, details, ip_address, timestamp, created_at as "createdAt";
   `;
 
   try {
@@ -40,8 +40,7 @@ export const createUserLog = async (logData: UserLogInput): Promise<UserLog> => 
       action, 
       details ? JSON.stringify(details) : null, 
       ip_address, 
-      timestamp,
-      user_agent
+      timestamp
     ]);
     return result.rows[0] as UserLog;
   } catch (error) {

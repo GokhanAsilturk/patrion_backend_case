@@ -114,7 +114,6 @@ export interface UserLogInput {
   details?: Record<string, any>;
   ip_address?: string;
   timestamp?: Date;
-  user_agent?: string;
 }
 
 /**

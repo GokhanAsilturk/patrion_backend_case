@@ -24,8 +24,7 @@ export const logUserActivity = (action: LogAction, detailsProvider?: (req: AuthR
         user_id: req.user.id,
         action,
         details,
-        ip_address: req.ip,
-        user_agent: req.headers['user-agent']
+        ip_address: req.ip
       });
 
       // Sonraki middleware'e devam et

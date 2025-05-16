@@ -157,8 +157,7 @@ const logInvalidSensorData = async (topic: string, rawData: string, reason: stri
       user_id: 1, // System user ID'si (veritabanında system kullanıcısı oluşturulmalı)
       action: LogAction.INVALID_SENSOR_DATA,
       details: errorDetails,
-      ip_address: 'system',
-      user_agent: 'MQTT Service'
+      ip_address: 'system'
     });
   } catch (logError) {
     // Log kaydı oluşturulurken hata olursa sadece konsola yaz

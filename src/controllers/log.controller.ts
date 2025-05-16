@@ -4,6 +4,7 @@ import { LogAction } from '../types/log';
 import { UserRole } from '../types/user';
 import pool from '../config/database';
 import { AuthRequest } from '../types/auth';
+import { parseLocalDate } from '../utils/date-utils';
 
 /**
  * @swagger
@@ -25,14 +26,14 @@ import { AuthRequest } from '../types/auth';
  *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Başlangıç tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Bitiş tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
  *       - in: query
  *         name: page
  *         schema:
@@ -88,14 +89,14 @@ import { AuthRequest } from '../types/auth';
  *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Başlangıç tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Bitiş tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
  *       - in: query
  *         name: page
  *         schema:
@@ -141,6 +142,23 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
     const userId = parseInt(req.params.userId, 10) || req.user?.id || 0;
     const userRole = req.user?.role;
     
+    // Tarih filtresi için parametreleri al
+    const startDateStr = req.query.startDate as string;
+    const endDateStr = req.query.endDate as string;
+    
+    // Eğer tarih parametreleri varsa, parse et
+    const startDate = startDateStr ? parseLocalDate(startDateStr) : null;
+    const endDate = endDateStr ? parseLocalDate(endDateStr) : null;
+    
+    // Geçersiz tarih formatı kontrolü
+    if ((startDateStr && !startDate) || (endDateStr && !endDate)) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Geçersiz tarih formatı. Lütfen GG/AA/YYYY formatında tarih girin (örn: 16/05/2025)'
+      });
+      return;
+    }
+    
     // Erişim kontrolü
     if (userRole !== UserRole.SYSTEM_ADMIN && req.user?.id !== userId) {
       // Şirket yöneticileri için şirket bazlı erişim kontrolü ek olarak yapılabilir
@@ -160,16 +178,76 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
     await createUserLog({
       user_id: req.user?.id || 0,
       action: LogAction.VIEWED_LOGS,
-      details: { target_user_id: userId },
+      details: { 
+        target_user_id: userId,
+        start_date: startDateStr,
+        end_date: endDateStr
+      },
       ip_address: req.ip
     });
     
-    const logs = await getUserLogsByUserId(userId);
+    // Tarih filtresi içeren sorguyu oluştur
+    let query = `
+      SELECT id, user_id, action, details, ip_address, timestamp, created_at as "createdAt"
+      FROM user_logs
+      WHERE user_id = $1
+    `;
+    
+    const queryParams: any[] = [userId];
+    
+    if (startDate) {
+      query += ` AND timestamp >= $${queryParams.length + 1}`;
+      queryParams.push(startDate.toISOString());
+    }
+    
+    if (endDate) {
+      // Bitiş tarihine 1 gün ekleyerek tam günü kapsayacak şekilde filtreleme
+      const nextDay = new Date(endDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      query += ` AND timestamp < $${queryParams.length + 1}`;
+      queryParams.push(nextDay.toISOString());
+    }
+    
+    query += ` ORDER BY timestamp DESC`;
+    
+    // Sayfalama için parametreleri al
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const limit = parseInt(req.query.limit as string, 10) || 10;
+    const offset = (page - 1) * limit;
+    
+    // Sayfalama ekle
+    query += ` LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+    queryParams.push(limit, offset);
+    
+    // Sorguyu çalıştır
+    const { rows } = await pool.query(query, queryParams);
+    
+    // Toplam kayıt sayısını al
+    const countQuery = `
+      SELECT COUNT(*) FROM user_logs 
+      WHERE user_id = $1
+      ${startDate ? ' AND timestamp >= $2' : ''}
+      ${endDate ? ` AND timestamp < $${startDate ? 3 : 2}` : ''}
+    `;
+    
+    const countParams: any[] = [userId];
+    if (startDate) countParams.push(startDate.toISOString());
+    if (endDate) {
+      const nextDay = new Date(endDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      countParams.push(nextDay.toISOString());
+    }
+    
+    const countResult = await pool.query(countQuery, countParams);
+    const totalCount = parseInt(countResult.rows[0].count, 10);
     
     res.json({
       status: 'success',
-      results: logs.length,
-      data: { logs }
+      results: rows.length,
+      total: totalCount,
+      page,
+      totalPages: Math.ceil(totalCount / limit),
+      data: { logs: rows }
     });
   } catch (error) {
     res.status(500).json({
@@ -199,14 +277,14 @@ export const getUserLogs = async (req: AuthRequest, res: Response): Promise<void
  *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Başlangıç tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Bitiş tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
  *       - in: query
  *         name: page
  *         schema:
@@ -296,14 +374,14 @@ export const getLogsByAction = async (req: AuthRequest, res: Response): Promise<
  *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Başlangıç tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Bitiş tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
  *       - in: query
  *         name: groupBy
  *         schema:
@@ -381,14 +459,14 @@ export const getLogsAnalytics = async (req: AuthRequest, res: Response): Promise
  *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Başlangıç tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Bitiş tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
  *     responses:
  *       200:
  *         description: Kullanıcı aktivite istatistikleri başarıyla getirildi
@@ -428,14 +506,14 @@ export const getLogsAnalytics = async (req: AuthRequest, res: Response): Promise
  *         name: startDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Başlangıç tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Başlangıç tarihi (Format: GG/AA/YYYY, Örnek: 16/05/2025)
  *       - in: query
  *         name: endDate
  *         schema:
  *           type: string
- *           format: date-time
- *         description: Bitiş tarihi (ISO8601 formatında)
+ *           format: date
+ *         description: Bitiş tarihi (Format: GG/AA/YYYY, Örnek: 18/05/2025)
  *     responses:
  *       200:
  *         description: Kullanıcı aktivite istatistikleri başarıyla getirildi
