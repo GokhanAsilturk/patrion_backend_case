@@ -177,7 +177,9 @@ export enum LogAction {
   RESET_PASSWORD = 'reset_password',
   API_REQUEST = 'api_request',
   API_ERROR = 'api_error',
-  INVALID_SENSOR_DATA = 'invalid_sensor_data'
+  INVALID_SENSOR_DATA = 'invalid_sensor_data',
+  PUBLISHED_SENSOR_DATA = 'published_sensor_data',
+  SENT_NOTIFICATION = 'sent_notification'
 }
 
 export interface LogAnalytics {

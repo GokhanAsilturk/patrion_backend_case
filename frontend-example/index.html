@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sensör İzleme Paneli</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .sensor-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      transition: all 0.3s;
+    }
+    .sensor-card.updated {
+      box-shadow: 0 0 15px rgba(0, 123, 255, 0.5);
+      background-color: rgba(0, 123, 255, 0.05);
+    }
+    .reading-value {
+      font-size: 2rem;
+      font-weight: bold;
+    }
+    .last-update {
+      font-size: 0.8rem;
+      color: #666;
+    }
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1050;
+    }
+    .toast {
+      min-width: 300px;
+      margin-bottom: 10px;
+      opacity: 1;
+    }
+    .toast-info {
+      background-color: #cce5ff;
+      border-color: #b8daff;
+    }
+    .toast-success {
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+    }
+    .toast-warning {
+      background-color: #fff3cd;
+      border-color: #ffeeba;
+    }
+    .toast-alert {
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+    }
+    .activity-notification {
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #f8f9fa;
+      border-left: 4px solid #007bff;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-4">
+    <h1 class="mb-4">Sensör İzleme Paneli</h1>
+    
+    <div class="row">
+      <div class="col-md-8">
+        <div class="row" id="sensors-container">
+          <!-- Sensör kartları buraya dinamik olarak eklenecek -->
+          <div class="col-md-6" id="sensor-123">
+            <div class="sensor-card">
+              <h3>Sensör #123</h3>
+              <div class="row">
+                <div class="col-6">
+                  <div class="text-center">
+                    <div class="reading-label">Sıcaklık</div>
+                    <div class="reading-value temperature">-- °C</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="text-center">
+                    <div class="reading-label">Nem</div>
+                    <div class="reading-value humidity">-- %</div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center mt-3">
+                <div class="last-update">Son Güncelleme: --</div>
+              </div>
+              <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-sm btn-primary join-sensor-btn" data-sensor-id="123">
+                  Sensör Odasına Katıl
+                </button>
+                <button class="btn btn-sm btn-outline-primary test-publish-btn" data-sensor-id="123">
+                  Test Verisi Yayınla
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="col-md-6" id="sensor-456">
+            <div class="sensor-card">
+              <h3>Sensör #456</h3>
+              <div class="row">
+                <div class="col-6">
+                  <div class="text-center">
+                    <div class="reading-label">Sıcaklık</div>
+                    <div class="reading-value temperature">-- °C</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="text-center">
+                    <div class="reading-label">Nem</div>
+                    <div class="reading-value humidity">-- %</div>
+                  </div>
+                </div>
+              </div>
+              <div class="text-center mt-3">
+                <div class="last-update">Son Güncelleme: --</div>
+              </div>
+              <div class="d-grid gap-2 mt-3">
+                <button class="btn btn-sm btn-primary join-sensor-btn" data-sensor-id="456">
+                  Sensör Odasına Katıl
+                </button>
+                <button class="btn btn-sm btn-outline-primary test-publish-btn" data-sensor-id="456">
+                  Test Verisi Yayınla
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-md-4">
+        <div class="card">
+          <div class="card-header">
+            <h5>Aktivite ve Bildirimler</h5>
+          </div>
+          <div class="card-body">
+            <div id="notifications-container">
+              <!-- Bildirimler buraya eklenecek -->
+              <div class="text-center text-muted py-3">
+                Henüz bildirim yok
+              </div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <div class="d-grid gap-2">
+              <button class="btn btn-sm btn-outline-primary" id="send-notification-btn">
+                Test Bildirimi Gönder
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div id="toast-container" class="toast-container"></div>
+  <div id="error-container"></div>
+  
+  <!-- Socket.IO Client -->
+  <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+  
+  <script type="module">
+    import { connectSocket, publishSensorData, sendNotification } from './socket-client.js';
+    
+    // Socket.IO bağlantısı
+    let socket;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      // Socket.IO bağlantısını başlat
+      socket = connectSocket();
+      
+      // Sensör odasına katılma butonları
+      document.querySelectorAll('.join-sensor-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          const sensorId = button.getAttribute('data-sensor-id');
+          socket.emit('join_sensor', sensorId);
+          showNotification({
+            type: 'info',
+            message: `Sensör #${sensorId} odasına katıldınız`,
+            timestamp: new Date().toISOString()
+          });
+        });
+      });
+      
+      // Test verisi yayınlama butonları
+      document.querySelectorAll('.test-publish-btn').forEach(button => {
+        button.addEventListener('click', () => {
+          const sensorId = button.getAttribute('data-sensor-id');
+          const readings = {
+            temperature: (20 + Math.random() * 10).toFixed(1),
+            humidity: (40 + Math.random() * 30).toFixed(1),
+            timestamp: new Date().toISOString()
+          };
+          
+          publishSensorData(socket, sensorId, readings, '789');
+        });
+      });
+      
+      // Test bildirimi gönderme butonu
+      document.getElementById('send-notification-btn').addEventListener('click', () => {
+        const targetTypes = ['company', 'sensor', 'all'];
+        const notificationTypes = ['info', 'success', 'warning', 'alert'];
+        
+        const targetType = targetTypes[Math.floor(Math.random() * targetTypes.length)];
+        const targetId = targetType === 'all' ? null : (targetType === 'sensor' ? '123' : '789');
+        const notificationType = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
+        const message = `Bu bir test ${notificationType} bildirimidir - ${new Date().toLocaleTimeString()}`;
+        
+        sendNotification(socket, targetType, targetId, notificationType, message);
+      });
+    });
+    
+    // UI fonksiyonları buraya eklenmeli
+    // Bunlar socket-client.js'de tanımlanmış olmalı, ama bir iç içe geçme örneği için bu fonksiyonu burada tanımlayalım
+    window.showActivityNotification = (data) => {
+      const notificationsContainer = document.getElementById('notifications-container');
+      
+      // İlk bildirimi temizle
+      if (notificationsContainer.querySelector('.text-muted')) {
+        notificationsContainer.innerHTML = '';
+      }
+      
+      const notification = document.createElement('div');
+      notification.className = 'activity-notification';
+      notification.innerHTML = `
+        <div class="sensor-activity">
+          <strong>Sensör Aktivitesi</strong>
+          <p>Sensör ID: ${data.sensorId}</p>
+          <p>Tip: ${data.type}</p>
+          <p>Zaman: ${new Date(data.timestamp).toLocaleString()}</p>
+        </div>
+      `;
+      
+      notificationsContainer.prepend(notification);
+      
+      // Maksimum 5 bildirim göster
+      const notifications = notificationsContainer.querySelectorAll('.activity-notification');
+      if (notifications.length > 5) {
+        notifications[notifications.length - 1].remove();
+      }
+    };
+  </script>
+</body>
+</html> 

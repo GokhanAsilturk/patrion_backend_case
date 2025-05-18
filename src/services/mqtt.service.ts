@@ -5,6 +5,7 @@ import { saveSensorData } from './sensor.service';
 import { writeSensorData } from './influxdb.service';
 import { createUserLog } from '../models/log.model';
 import { LogAction } from '../types/log';
+import { publishSensorData } from '../socket';
 
 let client: MqttClient;
 
@@ -61,6 +62,17 @@ export const initMqttClient = (): void => {
           
           try {
             await writeSensorData(sensorData);
+            
+            const sensorId = sensorData.sensor_id;
+            const companyId = sensorData.company_id;
+            
+            publishSensorData(sensorId, {
+              temperature: sensorData.temperature,
+              humidity: sensorData.humidity,
+              timestamp: sensorData.timestamp,
+              metadata: sensorData.metadata
+            }, companyId);
+            
           } catch (influxError) {
             console.error('InfluxDB\'ye veri yazılırken hata:', 
               influxError instanceof Error ? influxError.message : 'Bilinmeyen hata');
@@ -71,6 +83,19 @@ export const initMqttClient = (): void => {
           let statusData;
           try {
             statusData = JSON.parse(message.toString());
+            
+            if (statusData && statusData.sensor_id) {
+              const sensorId = statusData.sensor_id;
+              const companyId = statusData.company_id;
+              
+              publishSensorData(sensorId, {
+                status: statusData.status,
+                battery: statusData.battery,
+                timestamp: statusData.timestamp || Date.now(),
+                message: statusData.message
+              }, companyId);
+            }
+            
           } catch (parseError) {
             logInvalidSensorData(topic, message.toString(), 'JSON parse hatası (durum verisi)', parseError);
             return;
