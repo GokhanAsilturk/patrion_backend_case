@@ -19,7 +19,7 @@ export const register = async (userData: UserInput): Promise<UserResponse> => {
     const { full_name, ...rest } = userData as any;
     const userDataWithCorrectFields = {
       ...rest,
-      fullName: full_name || userData.fullName,
+      fullName: full_name ?? userData.fullName,
       password: hashedPassword
     };
     

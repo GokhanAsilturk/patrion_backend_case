@@ -54,6 +54,38 @@ export const getProfile = async (req: AuthRequest, res: Response): Promise<void>
 
 /**
  * @swagger
+ * /users/profile:
+ *   get:
+ *     summary: Oturum açmış kullanıcının profilini getirir
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Kullanıcı profili başarıyla getirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *       401:
+ *         description: Kimlik doğrulama gerekli
+ *       404:
+ *         description: Kullanıcı bulunamadı
+ *       500:
+ *         description: Sunucu hatası
+ */
+
+/**
+ * @swagger
  * /users:
  *   get:
  *     summary: Tüm kullanıcıları listeler
@@ -114,59 +146,92 @@ export const getAllUsers = async (req: AuthRequest, res: Response): Promise<void
 };
 
 /**
- * ID'ye göre kullanıcı getirir
+ * @swagger
+ * /users/{id}:
+ *   get:
+ *     summary: ID'ye göre kullanıcı getirir
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Kullanıcı ID
+ *     responses:
+ *       200:
+ *         description: Kullanıcı başarıyla getirildi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *       403:
+ *         description: Yetkisiz erişim
+ *       404:
+ *         description: Kullanıcı bulunamadı
+ *       500:
+ *         description: Sunucu hatası
+ *   put:
+ *     summary: Kullanıcı bilgilerini günceller
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: Kullanıcı ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *               companyId:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Kullanıcı başarıyla güncellendi
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       type: object
+ *       403:
+ *         description: Yetkisiz erişim
+ *       404:
+ *         description: Kullanıcı bulunamadı
+ *       500:
+ *         description: Sunucu hatası
  */
-export const getUserById = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const userId = parseInt(req.params.id, 10);
-    
-    // Kendi şirketimin kullanıcısını görüntüleyip görüntüleyemeyeceğimi kontrol et
-    if (req.user?.role === 'company_admin') {
-      const requestedUser = await userModel.findUserById(userId);
-      
-      if (!requestedUser || requestedUser.company_id !== req.user.company_id) {
-        res.status(403).json({
-          status: 'error',
-          message: 'Bu kullanıcıyı görüntüleme yetkiniz yok'
-        });
-        return;
-      }
-    }
-
-    const user = await userModel.findUserById(userId);
-
-    if (!user) {
-      res.status(404).json({
-        status: 'error',
-        message: 'Kullanıcı bulunamadı'
-      });
-      return;
-    }
-
-    // Kullanıcının profil görüntüleme log kaydını oluştur
-    if (req.user) {
-      await createUserLog({
-        user_id: req.user.id,
-        action: LogAction.VIEWED_USER_PROFILE,
-        details: { viewed_user_id: userId },
-        ip_address: req.ip
-      });
-    }
-
-    // Hassas bilgileri çıkart
-    const { password, ...userWithoutPassword } = user;
-
-    res.status(200).json({
-      status: 'success',
-      data: { user: userWithoutPassword }
-    });
-  } catch (error) {
-    res.status(500).json({
-      status: 'error',
-      message: error instanceof Error ? error.message : 'Kullanıcı bilgileri alınırken bir hata oluştu'
-    });
-  }
-};
 
 /**
  * Kullanıcı bilgilerini günceller
@@ -330,4 +395,4 @@ export const getUserByUsername = async (req: AuthRequest, res: Response): Promis
       message: error instanceof Error ? error.message : 'Kullanıcı bilgileri alınırken bir hata oluştu'
     });
   }
-}; 
+};

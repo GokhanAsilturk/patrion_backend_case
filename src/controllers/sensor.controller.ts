@@ -7,6 +7,39 @@ import { querySensorData, queryAggregatedData } from '../services/influxdb.servi
 import { parseLocalDate } from '../utils/date-utils';
 import { publishSensorData, io } from '../socket';
 
+/**
+ * @swagger
+ * /sensors/{sensorId}/timeseries:
+ *   get:
+ *     summary: Sensör zaman serisi verisi getirir
+ *     tags: [Sensors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sensorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Sensör ID
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *         description: Başlangıç tarihi (opsiyonel)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *         description: Bitiş tarihi (opsiyonel)
+ *     responses:
+ *       200:
+ *         description: Sensör zaman serisi verisi başarıyla getirildi
+ *       404:
+ *         description: Sensör bulunamadı
+ *       500:
+ *         description: Sunucu hatası
+ */
 export const getSensorTimeseriesData = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { sensorId } = req.params;
@@ -54,7 +87,7 @@ export const getSensorTimeseriesData = async (req: AuthRequest, res: Response): 
     
     // Log kaydı oluştur
     await createUserLog({
-      user_id: req.user?.id || 0,
+      user_id: req.user?.id ?? 0,
       action: LogAction.VIEWED_SENSOR_DATA,
       details: { 
         sensor_id: sensorId,
@@ -81,6 +114,57 @@ export const getSensorTimeseriesData = async (req: AuthRequest, res: Response): 
   }
 };
 
+/**
+ * @swagger
+ * /sensors/{sensorId}/analytics:
+ *   get:
+ *     summary: Sensör analitik verisi getirir
+ *     tags: [Sensors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sensorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Sensör ID
+ *       - in: query
+ *         name: field
+ *         schema:
+ *           type: string
+ *         description: Analiz edilecek alan
+ *       - in: query *         name: window
+ *         schema:
+ *           type: string
+ *           pattern: '^[0-9]+[hdwmy]$'
+ *           example: '1h'
+ *         description: |
+ *           Zaman penceresi formatı. Örnek değerler:
+ *             * 1h - 1 saat
+ *             * 24h - 24 saat
+ *             * 7d - 7 gün
+ *             * 1w - 1 hafta
+ *             * 1m - 1 ay
+ *             * 1y - 1 yıl
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *         description: Başlangıç tarihi (opsiyonel)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *         description: Bitiş tarihi (opsiyonel)
+ *     responses:
+ *       200:
+ *         description: Sensör analitik verisi başarıyla getirildi
+ *       404:
+ *         description: Sensör bulunamadı
+ *       500:
+ *         description: Sunucu hatası
+ */
 export const getSensorAnalytics = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { sensorId } = req.params;
@@ -138,7 +222,7 @@ export const getSensorAnalytics = async (req: AuthRequest, res: Response): Promi
     
     // Log kaydı oluştur
     await createUserLog({
-      user_id: req.user?.id || 0,
+      user_id: req.user?.id ?? 0,
       action: LogAction.VIEWED_SENSOR_DATA,
       details: { 
         sensor_id: sensorId,
@@ -169,6 +253,40 @@ export const getSensorAnalytics = async (req: AuthRequest, res: Response): Promi
   }
 };
 
+/**
+ * @swagger
+ * /sensors/{sensorId}/publish:
+ *   post:
+ *     summary: Sensör verisi manuel yayınla
+ *     tags: [Sensors]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sensorId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Sensör ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               readings:
+ *                 type: object
+ *               companyId:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Sensör verisi başarıyla yayınlandı
+ *       404:
+ *         description: Sensör bulunamadı
+ *       500:
+ *         description: Sunucu hatası
+ */
 export const publishSensorDataManually = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { sensorId } = req.params;
@@ -195,8 +313,8 @@ export const publishSensorDataManually = async (req: AuthRequest, res: Response)
     // Socket.IO ile veriyi yayınla
     const published = publishSensorData(sensorId, { 
       ...readings, 
-      timestamp: readings.timestamp || new Date().toISOString() 
-    }, companyId || sensor.company_id);
+      timestamp: readings.timestamp ?? new Date().toISOString() 
+    }, companyId ?? sensor.company_id);
     
     if (!published) {
       res.status(500).json({
@@ -208,11 +326,11 @@ export const publishSensorDataManually = async (req: AuthRequest, res: Response)
     
     // Log kaydı oluştur
     await createUserLog({
-      user_id: req.user?.id || 0,
+      user_id: req.user?.id ?? 0,
       action: LogAction.PUBLISHED_SENSOR_DATA,
       details: { 
         sensor_id: sensorId,
-        company_id: companyId || sensor.company_id,
+        company_id: companyId ?? sensor.company_id,
         readings
       },
       ip_address: req.ip
@@ -234,6 +352,38 @@ export const publishSensorDataManually = async (req: AuthRequest, res: Response)
   }
 };
 
+/**
+ * @swagger
+ * /notifications/send:
+ *   post:
+ *     summary: Bildirim gönder
+ *     tags: [Notifications]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               targetType:
+ *                 type: string
+ *                 enum: [company, sensor, all]
+ *               targetId:
+ *                 type: string
+ *               notificationType:
+ *                 type: string
+ *               message:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Bildirim başarıyla gönderildi
+ *       400:
+ *         description: Eksik bilgiler veya geçersiz targetType
+ *       500:
+ *         description: Sunucu hatası
+ */
 export const sendNotification = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { targetType, targetId, notificationType, message } = req.body;
@@ -249,7 +399,7 @@ export const sendNotification = async (req: AuthRequest, res: Response): Promise
     // Bildirim verisi oluştur
     const notificationData = {
       type: notificationType,
-      message: message || 'Yeni bildirim',
+      message: message ?? 'Yeni bildirim',
       timestamp: new Date().toISOString(),
       senderId: req.user?.id
     };
@@ -280,7 +430,7 @@ export const sendNotification = async (req: AuthRequest, res: Response): Promise
     
     // Log kaydı oluştur
     await createUserLog({
-      user_id: req.user?.id || 0,
+      user_id: req.user?.id ?? 0,
       action: LogAction.SENT_NOTIFICATION,
       details: { 
         target_type: targetType,
@@ -306,4 +456,4 @@ export const sendNotification = async (req: AuthRequest, res: Response): Promise
       message: error instanceof Error ? error.message : 'Bildirim gönderilirken hata oluştu'
     });
   }
-}; 
+};
